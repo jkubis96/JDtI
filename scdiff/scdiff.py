@@ -11,7 +11,8 @@ import plotly.express as px
 from joblib import Parallel, delayed
 from adjustText import adjust_text
 import seaborn as sns
-from harmony import harmonize
+# from harmony import harmonize
+import harmonypy as harmonize
 from scipy.stats import zscore
 from scipy.spatial.distance import pdist, squareform
 from sklearn.preprocessing import StandardScaler
@@ -50,8 +51,6 @@ class Clustering:
     -------
     add_data_frame(data, metadata)
         Class method to create a Clustering instance from a DataFrame and metadata.
-    get_partial_data(names=None, features=None, name_slot='cell_names')
-        Return a subset of the data by sample names and/or features.
     harmonize_sets(harmonize_type='harmony')
         Perform batch effect harmonization on PCA data.
     perform_PCA(pc_num=0, width=8, height=6)
@@ -120,66 +119,7 @@ class Clustering:
            
         return cls(data, metadata)
     
-    
-    def get_partial_data(self, names: list | str | None = None, 
-                         features: list | str | None = None, 
-                         name_slot: str = 'cell_names'):
-        
-        """
-       Return a subset of the data filtered by sample names and/or feature names.
-    
-       Parameters
-       ----------
-       names : list, str, or None
-           Names of samples to include. If None, all samples are considered.
-       features : list, str, or None
-           Names of features to include. If None, all features are considered.
-       name_slot : str
-           Column in metadata to use as sample names.
-    
-       Returns
-       -------
-       pandas.DataFrame
-           Subset of the normalized data based on the specified names and features.
-       """
-   
-        data = self.normalized_data.copy()
-        
-        if name_slot in self.input_metadata.columns:
-            data.columns = self.input_metadata[name_slot]
-        else:
-            raise ValueError("'name_slot' not occured in data!'")
-            
-        if isinstance(features, str):
-            features = [features]
-        elif features is None:
-            features = []
-        
-        if isinstance(names, str):
-            names = [names]
-        elif names is None:
-            names = []
-            
-        features = [x.upper() for x in features]
-        names = [x.upper() for x in names]
-        
-        columns_names = [x.upper() for x in data.columns]
-        features_names = [x.upper() for x in data.index]
-
-        columns_bool = [True if x in names else False for x in columns_names]
-        features_bool = [True if x in features else False for x in features_names]
-
-        if True not in columns_bool and True not in features_bool:
-            raise ValueError("Nothing to return. Check 'names' and/or 'features'")
-        
-        if True in columns_bool:
-            data = data.loc[:,columns_bool]
-        
-        if True in features_bool:
-            data = data.loc[features_bool,:]
-        
-        return data
-    
+       
     
         
     def harmonize_sets(self, 
@@ -206,7 +146,7 @@ class Clustering:
         
         metadata = self.input_metadata
     
-        self.harmonized_PCA = pd.DataFrame(harmonize(data_mat, metadata, batch_key=batch_col))
+        self.harmonized_PCA = pd.DataFrame(harmonize.run_harmony(data_mat, metadata, vars_use=batch_col).Z_corr).T
         
         self.harmonized_PCA.columns = self.PCA.columns
         
@@ -1075,7 +1015,9 @@ class COMPsc(Clustering):
         Returns normalized data with optional set annotations in column names.
     get_metadata()
         Returns the stored input metadata.
-    gene_calc()
+    get_partial_data(names=None, features=None, name_slot='cell_names')
+        Return a subset of the data by sample names and/or features.
+    gene_calculation()
         Calculates and stores per-cell gene detection counts as a pandas Series.
     gene_histograme(bins=100)
         Plots a histogram of genes detected per cell with an overlaid normal distribution.
@@ -1172,8 +1114,8 @@ class COMPsc(Clustering):
             objects = {}
             for filename in tqdm(os.listdir(path_to_directory)):
                 for c in project_list:
-                    if c == filename and os.path.isdir(filename):
-                        f = os.path.join(path_to_directory, filename)
+                    f = os.path.join(path_to_directory, filename)
+                    if c == filename and os.path.isdir(f):
                         objects[str(re.sub('_count', '', re.sub('_fq','', re.sub(re.sub('_.*', '', filename) + '_', '', filename))))] = f
         
             return cls(objects)
@@ -1373,6 +1315,9 @@ class COMPsc(Clustering):
             self.agg_metadata = self.agg_metadata.drop(columns=["drop"], errors="ignore")
             
             
+        self.gene_calculation()
+            
+            
     
     def get_data(self, set_info:bool = False):
         
@@ -1406,6 +1351,86 @@ class COMPsc(Clustering):
         return to_return
     
     
+    
+    def get_partial_data(self, names: list | str | None = None, 
+                         features: list | str | None = None, 
+                         name_slot: str = 'cell_names',
+                         inc_metadata: bool = False):
+        
+        """
+       Return a subset of the data filtered by sample names and/or feature names.
+    
+       Parameters
+       ----------
+       names : list, str, or None
+           Names of samples to include. If None, all samples are considered.
+       features : list, str, or None
+           Names of features to include. If None, all features are considered.
+       name_slot : str
+           Column in metadata to use as sample names.
+       inc_metadata : bool
+           If True return tuple (data, metadata)
+    
+       Returns
+       -------
+       pandas.DataFrame
+           Subset of the normalized data based on the specified names and features.
+       """
+   
+        data = self.normalized_data.copy()
+        metadata = self.input_metadata
+        
+        if name_slot in self.input_metadata.columns:
+            data.columns = self.input_metadata[name_slot]
+        else:
+            raise ValueError("'name_slot' not occured in data!'")
+            
+        if isinstance(features, str):
+            features = [features]
+        elif features is None:
+            features = []
+        
+        if isinstance(names, str):
+            names = [names]
+        elif names is None:
+            names = []
+            
+        features = [x.upper() for x in features]
+        names = [x.upper() for x in names]
+        
+        columns_names = [x.upper() for x in data.columns]
+        features_names = [x.upper() for x in data.index]
+
+        columns_bool = [True if x in names else False for x in columns_names]
+        features_bool = [True if x in features else False for x in features_names]
+
+        if True not in columns_bool and True not in features_bool:
+            print("Missing 'names' and/or 'features'. Returning full dataset instead.")
+            if inc_metadata:
+                return data, metadata
+            else:
+                return data
+
+        
+        if True in columns_bool:
+            data = data.loc[:,columns_bool]
+            metadata = metadata.loc[columns_bool,:]
+
+            
+            if inc_metadata:
+                return data, metadata
+            else:
+                return data
+        
+        if True in features_bool:
+            data = data.loc[features_bool,:]
+            
+            if inc_metadata:
+                return data, metadata
+            else:
+                return data
+        
+        
     def get_metadata(self):
         
         """
@@ -1423,7 +1448,7 @@ class COMPsc(Clustering):
     
     
     
-    def gene_calc(self):
+    def gene_calculation(self):
         
         """
         Calculate and store per-cell counts (e.g., number of detected genes).
@@ -1550,7 +1575,7 @@ class COMPsc(Clustering):
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing to reduce")
             
-            self.input_data = self.input_data.loc[:, mask]
+            self.input_data = self.input_data.loc[:, mask.values]
 
                 
         
@@ -1561,7 +1586,7 @@ class COMPsc(Clustering):
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing to reduce")
             
-            self.normalized_data = self.normalized_data.loc[:, mask]
+            self.normalized_data = self.normalized_data.loc[:, mask.values]
             
 
         if None is not self.input_metadata:
@@ -1570,12 +1595,14 @@ class COMPsc(Clustering):
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing to reduce")
             
-            self.input_metadata = self.input_metadata.loc[mask, :].reset_index(drop = True)
+            self.input_metadata = self.input_metadata.loc[mask.values, :].reset_index(drop = True)
             
             self.input_metadata = self.input_metadata.drop(columns=["drop"], errors="ignore")
             
         if None is not self.agg_normalized_data:
             self.average()
+            
+        self.gene_calculation()
 
 
     def load_sparse_from_projects(self, normalized_data:bool = False):
@@ -1624,7 +1651,7 @@ class COMPsc(Clustering):
             self.input_metadata = full_metadata
             
             
-        self.gene_calc()
+        self.gene_calculation()
 
     
     def rename_names(self, mapping: dict, slot:str = 'cell_names'):
@@ -2592,10 +2619,8 @@ class COMPsc(Clustering):
                           umap_num:int = 2,
                           eps:float = 0.5, 
                           min_samples:int = 10,
-                          bandwidth:int = 1,
                           n_neighbors:int = 5,  
                           min_dist:float = 0.1, 
-                          legend_split:int = 2, 
                           spread:float=1.0,              
                           set_op_mix_ratio:float=1.0,    
                           local_connectivity:int=1,    
@@ -2615,7 +2640,7 @@ class COMPsc(Clustering):
             DBSCAN eps parameter.
         min_samples : int, default 10
             DBSCAN min_samples parameter.
-        bandwidth, n_neighbors, min_dist, legend_split, spread, set_op_mix_ratio, local_connectivity, repulsion_strength, negative_sample_rate, width, height :
+        n_neighbors, min_dist, spread, set_op_mix_ratio, local_connectivity, repulsion_strength, negative_sample_rate, width, height :
             Additional parameters passed to UMAP / plotting / MeanShift as appropriate.
 
       
@@ -2636,10 +2661,8 @@ class COMPsc(Clustering):
                                                 umap_num = umap_num,
                                                 pc_num = 0,
                                                 harmonized = False,
-                                                bandwidth = bandwidth,
                                                 n_neighbors = n_neighbors,  
                                                 min_dist = min_dist, 
-                                                legend_split = legend_split, 
                                                 spread = spread,              
                                                 set_op_mix_ratio = set_op_mix_ratio,    
                                                 local_connectivity = local_connectivity,    
@@ -2663,12 +2686,15 @@ class COMPsc(Clustering):
     def subcluster_features_scatter(self,
                                     colors = 'viridis', 
                                     hclust = 'complete', 
+                                    scale = False,
                                     img_width = 3, 
                                     img_high = 5, 
                                     label_size = 6, 
                                     size_scale = 70,
                                     x_lab = 'Genes', 
-                                    legend_lab = 'normalized'):
+                                    legend_lab = 'normalized',
+                                    bbox_to_anchor_scale:int = 25,
+                                    bbox_to_anchor_perc:tuple=(0.91, 0.63)):
         
         """
         Create a features-scatter visualization for the subclusters (averaged and occurrence).
@@ -2679,6 +2705,8 @@ class COMPsc(Clustering):
             Colormap name passed to `features_scatter`.
         hclust : str or None
             Hierarchical clustering linkage to order rows/columns.
+        scale: bool, default False
+            If True, expression data will be scaled (0–1) across the rows (features).
         img_width, img_high : float
             Figure size.
         label_size : int
@@ -2689,6 +2717,10 @@ class COMPsc(Clustering):
             X axis label.
         legend_lab : str
             Colorbar label.
+        bbox_to_anchor_scale : int, default=25
+            Vertical scale (percentage) for positioning the colorbar.
+        bbox_to_anchor_perc : tuple, default=(0.91, 0.63)
+            Anchor position for the size legend (percent bubble legend).
 
         Returns
         -------
@@ -2724,6 +2756,7 @@ class COMPsc(Clustering):
         scatter = features_scatter(expression_data = avg, 
                                    occurence_data=occ,
                                      features = None, 
+                                     scale = scale,
                                      metadata_list = None, 
                                      colors = colors, 
                                      hclust = hclust, 
@@ -2732,7 +2765,9 @@ class COMPsc(Clustering):
                                      label_size = label_size, 
                                      size_scale = size_scale,
                                      x_lab = x_lab, 
-                                     legend_lab = legend_lab)
+                                     legend_lab = legend_lab,
+                                     bbox_to_anchor_scale = bbox_to_anchor_scale,
+                                     bbox_to_anchor_perc = bbox_to_anchor_perc)
         
         return scatter
 
@@ -2744,12 +2779,15 @@ class COMPsc(Clustering):
                                     p_val = 0.05,
                                     colors = 'viridis', 
                                     hclust = 'complete', 
+                                    scale = False,
                                     img_width = 3, 
                                     img_high = 5, 
                                     label_size = 6, 
                                     size_scale = 70,
                                     x_lab = 'Genes', 
                                     legend_lab = 'normalized',
+                                    bbox_to_anchor_scale:int = 25,
+                                    bbox_to_anchor_perc:tuple=(0.91, 0.63),
                                     n_proc=10):
         
         """
@@ -2759,13 +2797,39 @@ class COMPsc(Clustering):
         ----------
         top_n : int, default 3
             Number of top features per subcluster to show.
-        min_exp, min_pct, p_val : float
-            Filtering thresholds used when computing DEGs.
-        colors, hclust, img_width, img_high, label_size, size_scale, x_lab, legend_lab :
-            Passed to `features_scatter`.
+        min_exp : float, default 0
+            Minimum expression threshold passed to `statistic`.
+        min_pct : float, default 0.25
+            Minimum percent expressed in target group.
+        p_val: float, default 0.05
+            Maximum p-value for visualizing features.
         n_proc : int, default 10
             Parallel jobs used for DEG calculation.
-
+        scale: bool, default False
+            If True, expression_data will be scaled (0–1) across the rows (features).
+        colors : str, default='viridis'
+            Colormap for expression values.
+        hclust : str or None, default='complete'
+            Linkage method for hierarchical clustering. If None, no clustering
+            is performed.
+        img_width : int or float, default=8
+            Width of the plot in inches.
+        img_high : int or float, default=5
+            Height of the plot in inches.
+        label_size : int, default=10
+            Font size for axis labels and ticks.
+        size_scale : int or float, default=100
+            Scaling factor for bubble sizes.
+        x_lab : str, default='Genes'
+            Label for the x-axis.
+        legend_lab : str, default='normalized'
+            Label for the colorbar legend.
+        bbox_to_anchor_scale : int, default=25
+            Vertical scale (percentage) for positioning the colorbar.
+        bbox_to_anchor_perc : tuple, default=(0.91, 0.63)
+            Anchor position for the size legend (percent bubble legend).
+    
+    
         Returns
         -------
         matplotlib.figure.Figure
@@ -2804,6 +2868,8 @@ class COMPsc(Clustering):
 
 
         stats = stats[stats['p_val'] <= p_val]
+        stats = stats[stats['log(FC)'] > 0]
+
         
         stats = stats.sort_values(['esm', 'log(FC)'], ascending=[False, False]).groupby('valid_group').head(top_n)
                           
@@ -2826,7 +2892,9 @@ class COMPsc(Clustering):
                                      label_size = label_size, 
                                      size_scale = size_scale,
                                      x_lab = x_lab, 
-                                     legend_lab = legend_lab)
+                                     legend_lab = legend_lab,
+                                     bbox_to_anchor_scale = bbox_to_anchor_scale,
+                                     bbox_to_anchor_perc = bbox_to_anchor_perc)
 
         return scatter
 

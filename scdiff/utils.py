@@ -545,9 +545,9 @@ def get_color_palette(variable_list, palette_name='tab10'):
 
 
 
-
 def features_scatter(expression_data:pd.DataFrame, 
                      occurence_data:pd.DataFrame | None = None,
+                     scale: bool = False,
                      features:list | None = None, 
                      metadata_list:list | None = None, 
                      colors:str = 'viridis', 
@@ -576,6 +576,8 @@ def features_scatter(expression_data:pd.DataFrame,
     occurence_data : pandas.DataFrame or None
         DataFrame with occurrence/frequency values (same shape as `expression_data`) derived from occurrence() function.
         If None, bubble sizes are based on expression values.
+    scale: bool, default False
+        If True, expression_data will be scaled (0–1) across the rows (features).
     features : list or None
         List of features (rows) to display. If None, all features are used.
     metadata_list : list or None, optional
@@ -627,6 +629,20 @@ def features_scatter(expression_data:pd.DataFrame,
    
     scatter_df = expression_data.copy()
     
+    if scale:
+        
+        legend_lab = 'Scaled\n' + legend_lab
+
+        from sklearn.preprocessing import MinMaxScaler
+
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scatter_df = pd.DataFrame(
+            scaler.fit_transform(scatter_df.T).T, 
+            index=scatter_df.index,
+            columns=scatter_df.columns
+        )
+                
+            
     metadata = {}
     
     metadata['primary_names'] =  [str(x) for x in scatter_df.columns]
@@ -646,12 +662,12 @@ def features_scatter(expression_data:pd.DataFrame,
     metadata = pd.DataFrame(metadata)
     if None is not features:
         scatter_df = scatter_df.loc[find_features(data = scatter_df, features = features)['included'],]
-    scatter_df.columns = metadata['primary_names']  + ' # ' + metadata['sets']
+    scatter_df.columns = metadata['primary_names']  + '#' + metadata['sets']
 
     if None is not occurence_data:
         if None is not features:
             occurence_data = occurence_data.loc[find_features(data = occurence_data, features = features)['included'],]
-        occurence_data.columns = metadata['primary_names']  + ' # ' + metadata['sets']
+        occurence_data.columns = metadata['primary_names']  + '#' + metadata['sets']
     
     # check duplicated names 
     
@@ -662,7 +678,7 @@ def features_scatter(expression_data:pd.DataFrame,
     scatter_df.columns = new_cols
     
    
-    if hclust != None and len(expression_data.columns) != 1:
+    if hclust != None and len(expression_data.index) != 1:
         
         Z = linkage(scatter_df, method=hclust)
 
@@ -676,43 +692,37 @@ def features_scatter(expression_data:pd.DataFrame,
             sorted_list_rows.append(indexes_sort[n])
             
         
-        scatter_df_hcl = scatter_df.copy()
+        scatter_df = scatter_df.transpose()
 
-        scatter_df_hcl.columns = metadata['sets']
+        Z = linkage(scatter_df, method=hclust)
 
-        sorted_list_names = []
-        
-        se3 = None
-        for se in (metadata['sets']):
-            if se3 != se:
-                se3 = se
-                tmp = scatter_df_hcl[se]
-                tmp.columns = metadata['primary_names'][metadata['sets'] == se] + ' # ' + metadata['sets'][metadata['sets'] == se]
-                tmp = tmp.transpose()
-                
-    
-                Z = linkage(tmp, method=hclust)
-    
-                # Get the order of features based on the dendrogram
-                order_of_features = dendrogram(Z, no_plot=True)['leaves']
-    
-                indexes_sort = list(tmp.index)
-                sorted_list_columns = []
-                for n in order_of_features:
-                    sorted_list_columns.append(indexes_sort[n])
-                    
-                sorted_list_names = sorted_list_names + list(sorted_list_columns)
+        # Get the order of features based on the dendrogram
+        order_of_features = dendrogram(Z, no_plot=True)['leaves']
+
+        indexes_sort = list(scatter_df.index)
+        sorted_list_columns = []
+        for n in order_of_features:
+            sorted_list_columns.append(indexes_sort[n])
+            
+       
             
         
-        scatter_df = scatter_df.loc[sorted_list_rows, sorted_list_names]
+        scatter_df = scatter_df.transpose()
+        
+        scatter_df = scatter_df.loc[sorted_list_rows, sorted_list_columns]
         
         if None is not occurence_data:
-            occurence_data = occurence_data.loc[sorted_list_rows, sorted_list_names]
-            
+            occurence_data = occurence_data.loc[sorted_list_rows, sorted_list_columns]
+        
+        metadata['sets'] = [re.sub('.*#', '', x) for x in scatter_df.columns]
+        
+        
+
+    scatter_df.columns = [re.sub('#.*', '', x) for x in scatter_df.columns]
     
-    scatter_df.columns = [re.sub(' #.*', '' ,c) for c in scatter_df.columns]
-    
-                
+    if None is not occurence_data:
+        occurence_data.columns = [re.sub('#.*', '', x) for x in occurence_data.columns]
+
     
    
     fig, ax = plt.subplots(figsize=(img_width, img_high))
@@ -750,7 +760,10 @@ def features_scatter(expression_data:pd.DataFrame,
     cb.ax.tick_params(labelsize=label_size * 0.7)
     
     if metadata_list is not None:
+        
+        metadata_list = list(metadata['sets'])
         group_colors = get_color_palette(list(set(metadata_list)), palette_name='tab10')
+        
         for i, group in enumerate(metadata_list):
             ax.add_patch(plt.Rectangle(
                 (i - 0.5, len(scatter_df.index) - 0.2), 1, 0.3,
@@ -759,6 +772,7 @@ def features_scatter(expression_data:pd.DataFrame,
                 clip_on=False
             ))
     
+
         for i in range(1, len(metadata_list)):
             if metadata_list[i] != metadata_list[i - 1]:
                 ax.axvline(i - 0.5, color='black', linestyle='--', lw=1)
@@ -782,11 +796,13 @@ def features_scatter(expression_data:pd.DataFrame,
                    fontsize=label_size * 0.7, title_fontsize=label_size * 0.7,
                    loc='center left', bbox_to_anchor=bbox_to_anchor_perc, frameon=False)
     
+    ymin, ymax = ax.get_ylim()
+
     ax.set_xlim(-0.5, len(scatter_df.columns) - 0.5)
+    ax.set_ylim(-0.5, ymax + 0.5)
 
         
     return fig
-
 
 
 
