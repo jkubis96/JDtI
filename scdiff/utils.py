@@ -390,14 +390,15 @@ def find_features(data:pd.DataFrame, features:list):
     index_set = set(data.index)
     
     features_in = [x for x in index_set if x.upper() in features_upper]
-    features_out_upper = [x for x in features_in if x.upper() not in features_upper]
+    features_in_upper = [x.upper() for x in features_in]
+    features_out_upper = [x for x in features_upper if x not in features_in_upper]
     features_out = [x for x in features if x.upper() in features_out_upper]
-    no_similar_features = [x for x in index_set if not any(x.upper() in idx for idx in features_out_upper)]
+    similar_features = [idx for idx in index_set if any(x in idx.upper() for x in features_out_upper)]
 
     return {
         'included': features_in,
         'not_included': features_out,
-        'potential': no_similar_features
+        'potential': similar_features
     }
 
 
@@ -431,14 +432,16 @@ def find_names(data:pd.DataFrame, names:list):
     columns = set(data.columns)
     
     names_in = [x for x in columns if x.upper() in names_upper]
-    names_out_upper = [x for x in names_in if x.upper() not in names_upper]
+    names_in_upper = [x.upper() for x in names_in]
+    names_out_upper = [x for x in names_upper if x not in names_in_upper]
     names_out = [x for x in names if x.upper() in names_out_upper]
-    no_similar_names = [x for x in columns if not any(x.upper() in idx for idx in names_out_upper)]
+    similar_names = [idx for idx in columns if any(x in idx.upper() for x in names_out_upper)]
 
+ 
     return {
         'included': names_in,
         'not_included': names_out,
-        'potential': no_similar_names
+        'potential': similar_names
     }
 
 
@@ -558,6 +561,8 @@ def features_scatter(expression_data:pd.DataFrame,
                      size_scale:int = 100,
                      x_lab:str = 'Genes', 
                      legend_lab:str = 'log(CPM + 1)',
+                     set_box_size:float | int = 5,
+                     set_box_high: float | int = 5,
                      bbox_to_anchor_scale:int = 25,
                      bbox_to_anchor_perc:tuple=(0.91, 0.63),
                      bbox_to_anchor_group:tuple=(1.01, 0.4)):
@@ -766,7 +771,7 @@ def features_scatter(expression_data:pd.DataFrame,
         
         for i, group in enumerate(metadata_list):
             ax.add_patch(plt.Rectangle(
-                (i - 0.5, len(scatter_df.index) - 0.2), 1, 0.3,
+                (i - 0.5, len(scatter_df.index) - 0.1 * set_box_high), 1, 0.1*set_box_size,
                 color=group_colors[group],
                 transform=ax.transData,
                 clip_on=False
@@ -1015,13 +1020,21 @@ def calc_DEG(data,
     final_results = []
 
 
-    if entities and isinstance(entities, list) and sets is None:
+    if isinstance(entities, list) and sets is None:
         print('\nAnalysis started...\nComparing selected cells to the whole set...')
         
         if None is metadata_list:
             choose.index = metadata['primary_names']
         else:
             choose.index = metadata['primary_names'] + ' # ' + metadata['sets']
+            
+            if '#' not in entities[0]:
+                choose.index = metadata['primary_names']
+                print(
+                    "You provided 'metadata_list', but did not include the set info (name # set) "
+                    "in the 'entities' dict. "
+                    "Only the names will be compared, without considering the set information."
+                )
 
 
         labels = ['target' if idx in entities else 'rest' for idx in choose.index]
@@ -1032,10 +1045,8 @@ def calc_DEG(data,
 
         result_df = prepare_and_run_stat(choose.reset_index(drop=True), valid_group=valid, min_exp=min_exp, min_pct = min_pct, n_proc = n_proc, factors = factors)
         
-       
-           
         
-        return {'valid_cells': valid, 'control_cells': 'rest', 'DEG': result_df}
+        return {'valid': valid, 'control': 'rest', 'DEG': result_df}
 
     elif entities == 'All' and sets is None:
         print('\nAnalysis started...\nComparing each type of cell to others...')
@@ -1110,16 +1121,22 @@ def calc_DEG(data,
             choose.index = metadata['primary_names']
         else:
             choose.index = metadata['primary_names'] + ' # ' + metadata['sets']
+            if '#' not in entities[list(entities.keys())[0]][0]:
+                choose.index = metadata['primary_names']
+                print(
+                    "You provided 'metadata_list', but did not include the set info (name # set) "
+                    "in the 'entities' dict. "
+                    "Only the names will be compared, without considering the set information."
+                )
 
-        group_list = list(sets.keys())
+        group_list = list(entities.keys())
         if len(group_list) != 2:
             print('Only pairwise group comparison is supported.')
             return None
-
-
+         
         labels = [
-            'target' if idx in sets[group_list[0]] else
-            'rest' if idx in sets[group_list[1]] else
+            'target' if idx in entities[group_list[0]] else
+            'rest' if idx in entities[group_list[1]] else
             'drop'
             for idx in choose.index
         ]

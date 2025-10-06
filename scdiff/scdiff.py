@@ -27,7 +27,9 @@ from sklearn.metrics import pairwise_distances
 from scipy.stats import norm
 from scipy import sparse
 from scipy.io import mmwrite
-  
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
 from .utils import *
 
 
@@ -53,13 +55,13 @@ class Clustering:
         Class method to create a Clustering instance from a DataFrame and metadata.
     harmonize_sets(harmonize_type='harmony')
         Perform batch effect harmonization on PCA data.
-    perform_PCA(pc_num=0, width=8, height=6)
+    perform_PCA(pc_num=100, width=8, height=6)
         Perform PCA on the dataset and visualize the first two PCs.
     knee_plot_PCA(width=8, height=6)
         Plot the cumulative variance explained by PCs to determine optimal dimensionality.
     find_clusters_PCA(pc_num=0, eps=0.5, min_samples=10, width=8, height=6, harmonized=False)
         Apply DBSCAN clustering to PCA embeddings and visualize results.
-    perform_UMAP(factorize=False, umap_num=0, pc_num=0, harmonized=False, ...)
+    perform_UMAP(factorize=False, umap_num=100, pc_num=0, harmonized=False, ...)
         Compute UMAP embeddings with optional parameter tuning.
     knee_plot_umap(eps=0.5, min_samples=10)
         Determine optimal UMAP dimensionality using silhouette scores.
@@ -144,7 +146,7 @@ class Clustering:
         
         data_mat = np.array(self.PCA)     
         
-        metadata = self.input_metadata
+        metadata = self.clustering_metadata
     
         self.harmonized_PCA = pd.DataFrame(harmonize.run_harmony(data_mat, metadata, vars_use=batch_col).Z_corr).T
         
@@ -152,7 +154,7 @@ class Clustering:
         
             
     def perform_PCA(self, 
-                    pc_num:int = 0,
+                    pc_num:int = 100,
                     width = 8, 
                     height = 6):
     
@@ -164,7 +166,7 @@ class Clustering:
       
         Parameters
         ----------
-        pc_num : int, default 0
+        pc_num : int, default 100
             Number of principal components to compute.
             If 0, computes all available components.
         width : int or float, default 8
@@ -190,8 +192,8 @@ class Clustering:
         scaler = StandardScaler()
         data_scaled = scaler.fit_transform(self.clustering_data.T)
         
-        if pc_num == 0:
-            pc_num = data_scaled.shape[1]
+        if pc_num == 0 or pc_num > data_scaled.shape[0]:
+            pc_num = data_scaled.shape[0] 
     
         
         pca = PCA(n_components=pc_num, random_state=42)  
@@ -348,7 +350,7 @@ class Clustering:
        
     def perform_UMAP(self, 
                      factorize:bool = False,
-                     umap_num:int = 0,
+                     umap_num:int = 100,
                      pc_num:int = 0,
                      harmonized:bool = False,
                      n_neighbors:int = 5,  
@@ -374,7 +376,7 @@ class Clustering:
         factorize : bool, default False
             If True, categorical sample labels (from column names) are factorized
             and used as supervision in UMAP fitting.
-        umap_num : int, default 0
+        umap_num : int, default 100
             Number of UMAP dimensions to compute. If 0, matches the input dimension.
         pc_num : int, default 0
             Number of principal components to use as UMAP input.
@@ -434,7 +436,7 @@ class Clustering:
                 data_scaled = self.PCA.iloc[:,0:pc_num]
 
              
-        if umap_num == 0:
+        if umap_num == 0 or umap_num > data_scaled.shape[1]:
             
             umap_num = data_scaled.shape[1]
 
@@ -659,14 +661,12 @@ class Clustering:
         """
        
         umap_df = self.UMAP.iloc[:,0:2]
-        umap_df['names'] = self.input_metadata[names_slot]  
-        
-        umap_df['names'] = self.input_metadata[names_slot]  
-        
+        umap_df['names'] = self.clustering_metadata[names_slot]  
+                
         if set_sep:
             
-            if 'sets' in self.input_metadata.columns:
-                umap_df['dataset'] = self.input_metadata['sets']  
+            if 'sets' in self.clustering_metadata.columns:
+                umap_df['dataset'] = self.clustering_metadata['sets']  
             else:
                 umap_df['dataset'] = 'default'
         
@@ -1188,7 +1188,10 @@ class COMPsc(Clustering):
     
 
     
-    def reduce(self, reg:str, inc_set:bool = False):
+    def reduce(self, 
+               reg:str, 
+               name_slot:str = 'cell_names',
+               inc_set:bool = False):
         
         """
         Remove columns (cells) whose names contain a substring `reg` from available tables.
@@ -1197,6 +1200,8 @@ class COMPsc(Clustering):
         ----------
         reg : str
             Substring to search for in column/cell names; matching columns will be removed.
+        name_slot : str, default 'cell_names'
+            Column in metadata to use as sample names.  
         inc_set : bool, default False
             If True, column names are interpreted as 'cell_name # set' when matching.
 
@@ -1216,11 +1221,11 @@ class COMPsc(Clustering):
             
             if inc_set:
                 
-                self.input_data.columns = self.input_metadata['cell_names'] + ' # ' + self.input_metadata['sets']
+                self.input_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
                 
             else:
                 
-                self.input_data.columns = self.input_metadata['cell_names'] 
+                self.input_data.columns = self.input_metadata[name_slot] 
             
             mask = [reg not in x for x in self.input_data.columns]
             
@@ -1235,12 +1240,12 @@ class COMPsc(Clustering):
             
             if inc_set:
                 
-                self.normalized_data.columns = self.input_metadata['cell_names'] + ' # ' + self.input_metadata['sets']
+                self.normalized_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
                 
                 
             else:
                 
-                self.normalized_data.columns = self.input_metadata['cell_names'] 
+                self.normalized_data.columns = self.input_metadata[name_slot] 
                 
                 
             mask = [reg not in x for x in self.normalized_data.columns]
@@ -1256,11 +1261,11 @@ class COMPsc(Clustering):
             
             if inc_set:
                 
-                self.input_metadata['drop'] = self.input_metadata['cell_names'] + ' # ' + self.input_metadata['sets']
+                self.input_metadata['drop'] = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
                 
             else:
                 
-                self.input_metadata['drop'] = self.input_metadata['cell_names'] 
+                self.input_metadata['drop'] = self.input_metadata[name_slot] 
                 
             
             mask = [reg not in x for x in self.input_metadata['drop']]
@@ -1278,11 +1283,11 @@ class COMPsc(Clustering):
             
             if inc_set:
                 
-                self.agg_normalized_data.columns = self.agg_metadata['cell_names'] + ' # ' + self.agg_metadata['sets']
+                self.agg_normalized_data.columns = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
                 
             else:
                 
-                self.agg_normalized_data.columns = self.agg_metadata['cell_names'] 
+                self.agg_normalized_data.columns = self.agg_metadata[name_slot] 
             
             
             mask = [reg not in x for x in self.agg_normalized_data.columns]
@@ -1298,11 +1303,11 @@ class COMPsc(Clustering):
             
             if inc_set:
                 
-                self.agg_metadata['drop'] = self.agg_metadata['cell_names'] + ' # ' + self.agg_metadata['sets']
+                self.agg_metadata['drop'] = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
                 
             else:
                 
-                self.agg_metadata['drop'] = self.agg_metadata['cell_names'] 
+                self.agg_metadata['drop'] = self.agg_metadata[name_slot] 
                 
             
             mask = [reg not in x for x in self.agg_metadata['drop']]
@@ -1316,6 +1321,7 @@ class COMPsc(Clustering):
             
             
         self.gene_calculation()
+        self.cells_calculation()
             
             
     
@@ -1358,23 +1364,23 @@ class COMPsc(Clustering):
                          inc_metadata: bool = False):
         
         """
-       Return a subset of the data filtered by sample names and/or feature names.
-    
-       Parameters
-       ----------
-       names : list, str, or None
-           Names of samples to include. If None, all samples are considered.
-       features : list, str, or None
-           Names of features to include. If None, all features are considered.
-       name_slot : str
-           Column in metadata to use as sample names.
-       inc_metadata : bool
-           If True return tuple (data, metadata)
-    
-       Returns
-       -------
-       pandas.DataFrame
-           Subset of the normalized data based on the specified names and features.
+        Return a subset of the data filtered by sample names and/or feature names.
+     
+        Parameters
+        ----------
+        names : list, str, or None
+            Names of samples to include. If None, all samples are considered.
+        features : list, str, or None
+            Names of features to include. If None, all features are considered.
+        name_slot : str
+            Column in metadata to use as sample names.
+        inc_metadata : bool
+            If True return tuple (data, metadata)
+     
+        Returns
+        -------
+        pandas.DataFrame
+            Subset of the normalized data based on the specified names and features.
        """
    
         data = self.normalized_data.copy()
@@ -1502,8 +1508,8 @@ class COMPsc(Clustering):
         Returns
         -------
         matplotlib.figure.Figure
-            Figure containing the histogram and an overlaid normal PDF.
-
+            Figure containing the histogram of gene contents.
+            
         Notes
         -----
         - Requires `self.gene_calc` to be computed prior to calling.
@@ -1603,6 +1609,199 @@ class COMPsc(Clustering):
             self.average()
             
         self.gene_calculation()
+        self.cells_calculation()
+
+
+    def cells_calculation(self, name_slot = 'cell_names'):
+        
+        """
+        Calculate number of cells per  call name / cluster.
+
+        The method computes a binary (presence/absence) per cell name / cluster and sums across
+        cells.
+
+        Parameters
+        ----------
+        name_slot : str, default 'cell_names'
+            Column in metadata to use as sample names.  
+       
+        
+        Update
+        ------
+            Sets `self.cells_calc` as a pd.DataFrame.
+        
+        """
+        
+        ls = list(self.input_metadata[name_slot])
+            
+        df = pd.DataFrame({"cluster": pd.Series(ls).value_counts().index,
+                   "n": pd.Series(ls).value_counts().values})
+        
+        self.cells_calc = df
+
+
+    def cell_histograme(self, name_slot:str = 'cell_names'):
+        
+        """
+        Plot a histogram of the number of cells detected per cell name (cluster).
+        
+        Parameters
+        ----------
+        name_slot : str, default 'cell_names'
+            Column in metadata to use as sample names.  
+      
+        
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Figure containing the histogram of cell contents.
+        
+        Notes
+        -----
+        - Requires `self.cells_calc` to be computed prior to calling.
+        """
+
+        if name_slot != 'cell_names':
+            self.cells_calculation(name_slot = name_slot)
+            
+        fig, ax = plt.subplots(figsize=(8, 5))
+
+        counts, bin_edges, patches = ax.hist(list(self.cells_calc['n']), bins=len(set(self.cells_calc['cluster'])), edgecolor="black",  color="orange", alpha=0.6)
+        
+        mu, sigma = np.mean(list(self.cells_calc['n'])), np.std(list(self.cells_calc['n']))
+        
+        x = np.linspace(min(list(self.cells_calc['n'])), max(list(self.cells_calc['n'])), 1000)
+        y = norm.pdf(x, mu, sigma)
+        
+        y_scaled = y * len(list(self.cells_calc['n'])) * (bin_edges[1] - bin_edges[0])
+        
+        ax.plot(x, y_scaled, "r-", linewidth=2, label=f"Normal(μ={mu:.2f}, σ={sigma:.2f})")
+        
+        ax.set_xlabel("Value")
+        ax.set_ylabel("Count")
+        ax.set_title("Histogram of cells detected per cell name / cluster")
+        
+        ax.set_xticks(np.linspace(min(list(self.cells_calc['n'])), max(list(self.cells_calc['n'])), 20))
+        ax.tick_params(axis="x", rotation=90)
+        
+        ax.legend()
+        
+        return fig
+    
+    
+    def cluster_threshold(self, 
+                          min_n:int | None,
+                          name_slot:str = 'cell_names'):
+        
+        """
+        Filter cell names / clusters by cell-detection threshold.
+
+        Parameters
+        ----------
+        min_n : int or None
+            Minimum number of detected genes required to keep a cell.
+        name_slot : str, default 'cell_names'
+            Column in metadata to use as sample names.  
+      
+
+        Update
+        -------
+            Filters `self.input_data`, `self.normalized_data`, `self.input_metadata`
+            (and calls `average()` if `self.agg_normalized_data` exists).
+          
+        """
+        
+        if name_slot != 'cell_names':
+            self.cells_calculation(name_slot = name_slot)
+            
+            
+        if min_n is not None:
+            names = self.cells_calc['cluster'][self.cells_calc['n'] < min_n]
+        else:
+            raise ValueError("Lack of min_n value")
+        
+        
+        if len(names) > 0:
+           
+            if self.input_data != None:
+                
+                    
+                self.input_data.columns = self.input_metadata[name_slot] 
+                
+                mask = [not any(r in x for r in names) for x in self.input_data.columns]
+        
+                
+                if len([y for y in mask if y is False]) > 0:
+       
+                
+                    self.input_data = self.input_data.loc[:, mask]
+        
+                    
+            
+            if None is not self.normalized_data:
+        
+              
+                self.normalized_data.columns = self.input_metadata[name_slot] 
+                    
+                    
+                mask = [not any(r in x for r in names) for x in self.normalized_data.columns]
+        
+                if len([y for y in mask if y is False]) > 0: 
+                
+                    self.normalized_data = self.normalized_data.loc[:, mask]
+                
+        
+            
+            if None is not self.input_metadata:
+                
+         
+                    
+                self.input_metadata['drop'] = self.input_metadata[name_slot] 
+                    
+                mask = [not any(r in x for r in names) for x in self.input_metadata['drop']]
+        
+                
+                if len([y for y in mask if y is False]) > 0:
+                
+                    self.input_metadata = self.input_metadata.loc[mask, :].reset_index(drop = True)
+                    
+                self.input_metadata = self.input_metadata.drop(columns=["drop"], errors="ignore")
+            
+                    
+            
+            if None is not self.agg_normalized_data:
+                
+                self.agg_normalized_data.columns = self.agg_metadata[name_slot] 
+                
+                mask = [not any(r in x for r in names) for x in self.agg_normalized_data.columns]
+        
+                
+                if len([y for y in mask if y is False]) > 0:
+                    
+                
+                    self.agg_normalized_data = self.agg_normalized_data.loc[:, mask]
+                
+        
+        
+            if None is not self.agg_metadata:
+                
+        
+                    
+                self.agg_metadata['drop'] = self.agg_metadata[name_slot] 
+                    
+                
+                mask = [not any(r in x for r in names) for x in self.agg_metadata['drop']]
+        
+                
+                if len([y for y in mask if y is False]) > 0:
+                
+                    self.agg_metadata = self.agg_metadata.loc[mask, :].reset_index(drop = True)
+                    
+                self.agg_metadata = self.agg_metadata.drop(columns=["drop"], errors="ignore")
+                    
+                
+            self.gene_calculation()
+            self.cells_calculation()
 
 
     def load_sparse_from_projects(self, normalized_data:bool = False):
@@ -1652,6 +1851,7 @@ class COMPsc(Clustering):
             
             
         self.gene_calculation()
+        self.cells_calculation()
 
     
     def rename_names(self, mapping: dict, slot:str = 'cell_names'):
@@ -2147,7 +2347,7 @@ class COMPsc(Clustering):
             
             df_tmp = self.var_data[self.var_data['adj_pval'] <= p_val]
             df_tmp = df_tmp[df_tmp['log(FC)'] > 0]
-            df_tmp = df_tmp.sort_values(['valid_group', 'esm'], ascending=[True, False]).groupby('valid_group').head(top_n)    
+            df_tmp = df_tmp.sort_values(['valid_group','esm', 'log(FC)'], ascending=[True, False, False]).groupby('valid_group').head(top_n)    
 
             feaures_list = list(set(df_tmp['feature']))
         
@@ -2234,7 +2434,7 @@ class COMPsc(Clustering):
         
         df_tmp = self.var_data[self.var_data['adj_pval'] <= p_val]
         df_tmp = df_tmp[df_tmp['log(FC)'] > 0]
-        df_tmp = df_tmp.sort_values(['valid_group', 'esm'], ascending=[True, False]).groupby('valid_group').head(top_n)    
+        df_tmp = df_tmp.sort_values(['valid_group', 'esm', 'log(FC)'], ascending=[True, False, False]).groupby('valid_group').head(top_n)    
 
         
         data = data.loc[list(set(df_tmp['feature']))]
@@ -2871,7 +3071,7 @@ class COMPsc(Clustering):
         stats = stats[stats['log(FC)'] > 0]
 
         
-        stats = stats.sort_values(['esm', 'log(FC)'], ascending=[False, False]).groupby('valid_group').head(top_n)
+        stats = stats.sort_values(['valid_group', 'esm', 'log(FC)'], ascending=[True, False, False]).groupby('valid_group').head(top_n)
                           
                        
         dat = reduce_data(dat,
@@ -2932,8 +3132,717 @@ class COMPsc(Clustering):
         self.input_metadata['cell_names'] = new_meta
         
         self.subclusters_ = None
+        
+        
+    def scatter_plot(self,
+                     names: list | None = None,
+                     features: list | None = None,
+                     name_slot: str = 'cell_names',
+                     scale = True,
+                     colors = 'viridis', 
+                     hclust = None, 
+                     img_width  = 15, 
+                     img_high  = 1, 
+                     label_size = 10, 
+                     size_scale = 200,
+                     x_lab = 'Genes', 
+                     legend_lab = 'log(CPM + 1)',
+                     set_box_size:float | int = 5,
+                     set_box_high: float | int = 5,
+                     bbox_to_anchor_scale = 25,
+                     bbox_to_anchor_perc=(0.90, -0.24),
+                     bbox_to_anchor_group=(1.01, 0.4)):
+                     
+        """
+        Create a bubble scatter plot of selected features across samples inside project.
+     
+        Each point represents a feature-sample pair, where the color encodes the
+        expression value and the size encodes occurrence or relative abundance.
+        Optionally, hierarchical clustering can be applied to order rows and columns.
+     
+        Parameters
+        ----------
+        names : list, str, or None
+            Names of samples to include. If None, all samples are considered.
+        features : list, str, or None
+            Names of features to include. If None, all features are considered.
+        name_slot : str
+            Column in metadata to use as sample names.       
+        scale: bool, default False
+            If True, expression_data will be scaled (0–1) across the rows (features).
+        colors : str, default='viridis'
+            Colormap for expression values.
+        hclust : str or None, default='complete'
+            Linkage method for hierarchical clustering. If None, no clustering
+            is performed.
+        img_width : int or float, default=8
+            Width of the plot in inches.
+        img_high : int or float, default=5
+            Height of the plot in inches.
+        label_size : int, default=10
+            Font size for axis labels and ticks.
+        size_scale : int or float, default=100
+            Scaling factor for bubble sizes.
+        x_lab : str, default='Genes'
+            Label for the x-axis.
+        legend_lab : str, default='log(CPM + 1)'
+            Label for the colorbar legend.
+        bbox_to_anchor_scale : int, default=25
+            Vertical scale (percentage) for positioning the colorbar.
+        bbox_to_anchor_perc : tuple, default=(0.91, 0.63)
+            Anchor position for the size legend (percent bubble legend).
+        bbox_to_anchor_group : tuple, default=(1.01, 0.4)
+            Anchor position for the group legend.
+     
+        Returns
+        -------
+        matplotlib.figure.Figure
+            The generated scatter plot figure.
+
+     
+        Notes
+        -----
+        - Colors represent expression values normalized to the colormap.
+       
+        """
+        
+        prtd, met = self.get_partial_data(names=names, 
+                                            features=features, 
+                                            name_slot=name_slot,
+                                            inc_metadata = True)
+
+        prtd.columns = prtd.columns + '#' + met['sets']
+        
+        prtd_avg = average(prtd)
+        
+        meta_sets = [re.sub('.*#', '', x) for x in prtd_avg.columns]
+        
+        prtd_avg.columns = [re.sub('#.*', '', x) for x in prtd_avg.columns]
+        
+        prtd_occ = occurrence(prtd)
+        
+        prtd_occ.columns = [re.sub('#.*', '', x) for x in prtd_occ.columns]
+        
+        
+        
+        
+        fig_scatter = features_scatter(expression_data=prtd_avg, 
+                             occurence_data = prtd_occ,
+                             scale = scale,
+                             features = None, 
+                             metadata_list = meta_sets, 
+                             colors = 'colors', 
+                             hclust = hclust, 
+                             img_width  = img_width, 
+                             img_high  = img_high, 
+                             label_size = label_size, 
+                             size_scale = size_scale,
+                             x_lab = x_lab, 
+                             legend_lab = legend_lab,
+                             set_box_size = set_box_size,
+                             set_box_high = set_box_high,
+                             bbox_to_anchor_scale = bbox_to_anchor_scale,
+                             bbox_to_anchor_perc=bbox_to_anchor_perc,
+                             bbox_to_anchor_group=bbox_to_anchor_group)
+        
+        return fig_scatter
      
  
+    
+    def data_composition(self, 
+                         features_count: list | None,
+                         name_slot:str = 'cell_names',
+                         set_sep:bool = True
+                         ):
+       
+        """
+        Compute composition of cell types in data set.
+       
+        This function counts the occurrences of specific cells (e.g., cell types, subtypes) 
+        within metadata entries, calculates their relative percentages, and stores 
+        the results in `self.composition_data`.
+       
+        Parameters
+        ----------
+        features_count : list or None
+            List of features (part or full names) to be counted. 
+            If None, all unique elements from the specified `name_slot` metadata field are used.
+        name_slot : str, default 'cell_names'
+            Metadata field containing sample identifiers or labels.
+        set_sep : bool, default True
+            If True and multiple sets are present in metadata, compute composition 
+            separately for each set.
+            
+        Update
+        -------
+            Stores results in `self.composition_data` as a pandas DataFrame with:
+            - 'name': feature name
+            - 'n': number of occurrences
+            - 'pct': percentage of occurrences
+            - 'set' (if applicable): dataset identifier
+        
+        """
+        
+        validated_list = list(self.input_metadata[name_slot])
+        sets = list(self.input_metadata['sets'])
+        
+         
+        if features_count is None:
+            features_count = list(set(self.input_metadata[name_slot]))
+            
+                    
+        if set_sep and len(set(sets)) > 1:
+            
+            
+            final_res = pd.DataFrame()
+            
+            for s in set(sets):
+                print(s)
+                
+                mask = [True if s == x else False for x in sets]
+                
+                tmp_val_list = np.array(validated_list)
+    
+                tmp_val_list = list(tmp_val_list[mask])
+                
+                res_dict = {'name':[], 'n':[], 'set':[]}
+    
+                for f in tqdm(features_count):
+                    res_dict['n'].append(sum(1 for element in tmp_val_list if f in element))
+                    res_dict['name'].append(f)
+                    res_dict['set'].append(s)
+                    res = pd.DataFrame(res_dict)
+                    res['pct'] = res['n']/sum(res['n'])*100   
+                    res['pct'] = res['pct'].round(2)
+            
+                final_res = pd.concat([final_res, res])
+                
+            res = final_res.sort_values(['set', 'pct'], ascending=[True, False])
+    
+        
+        else:
+            
+            res_dict = {'name':[], 'n':[]}
+            
+                       
+            for f in tqdm(features_count):
+                res_dict['n'].append(sum(1 for element in validated_list if f in element))
+                res_dict['name'].append(f)
+             
+            res = pd.DataFrame(res_dict)
+            res['pct'] = res['n']/sum(res['n'])*100   
+            res['pct'] = res['pct'].round(2)
+    
+        
+            res = res.sort_values('pct', ascending= False)
+    
+        self.composition_data = res
+        
+              
+    
+     
+    def composition_pie(self, 
+                        width = 6, 
+                        height = 6, 
+                        font_size = 15,
+                        cmap:str  = "tab20",
+                        legend_split_col: int = 1,
+                        offset_labels: float | int = 0.5,
+                        legend_bbox: tuple = (1.15, 0.95)):
+        
+        """
+        Visualize the composition of cell lineages using pie charts.
+    
+        Generates pie charts showing the relative proportions of features stored 
+        in `self.composition_data`. If multiple sets are present, a separate 
+        chart is drawn for each set.
+    
+        Parameters
+        ----------
+        width : int, default 6
+            Width of the figure.
+        height : int, default 6
+            Height of the figure (applied per set if multiple sets are plotted).
+        font_size : int, default 15
+            Font size for labels and annotations.
+        cmap : str, default 'tab20'
+            Colormap used for pie slices.
+        legend_split_col : int, default 1
+            Number of columns in the legend.
+        offset_labels : float or int, default 0.5
+            Spacing offset for label placement relative to pie slices.
+        legend_bbox : tuple, default (1.15, 0.95)
+            Bounding box anchor position for the legend.
+    
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Pie chart visualization of composition data.
+        """
+        
+        
+        df = self.composition_data
+    
+        if 'set' in df.columns and len(set(df['set'])) > 1:
+            
+            sets = list(set(df['set']))
+            fig, axes = plt.subplots(len(sets), 1, figsize=(width, height*len(sets)))  
+    
+            all_wedges = []  
+            cmap = plt.get_cmap(cmap)
+    
+    
+            set_nam = len(set(df['name']))
+    
+            legend_labels = list(set(df['name']))
+    
+            colors = [cmap(i / set_nam) for i in range(set_nam)]
+    
+            cmap_dict = dict(zip(legend_labels, colors))
+    
+    
+            for idx, s in enumerate(sets):
+                ax = axes[idx]
+                tmp_df = df[df['set'] == s].reset_index(drop=True)
+                
+                labels = [f"{row['pct']:.1f}%" for _, row in tmp_df.iterrows()]
+                
+                
+    
+                wedges, texts = ax.pie(
+                    tmp_df["n"], 
+                    startangle=90, 
+                    labeldistance=1.05, 
+                    colors=[cmap_dict[x] for x in tmp_df["name"]], 
+                    wedgeprops={'linewidth': 0.5, 'edgecolor': 'black'}
+                )
+                
+                all_wedges.extend(wedges)
+    
+                kw = dict(arrowprops=dict(arrowstyle="-"), zorder=0, va="center")
+                n = 0
+                for i, p in enumerate(wedges):
+                    ang = (p.theta2 - p.theta1)/2. + p.theta1
+                    y = np.sin(np.deg2rad(ang))
+                    x = np.cos(np.deg2rad(ang))
+                    horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+                    connectionstyle = f"angle,angleA=0,angleB={ang}"
+                    kw["arrowprops"].update({"connectionstyle": connectionstyle})
+                    if len(labels[i]) > 0:
+                        n += offset_labels
+                        ax.annotate(
+                            labels[i],
+                            xy=(x, y),
+                            xytext=(1.01*x+(n*x/4), 1.01*y+(n*y/4)),
+                            horizontalalignment=horizontalalignment,
+                            fontsize=font_size,
+                            weight="bold",
+                            **kw
+                        )
+    
+                circle2 = plt.Circle((0,0), 0.6, color='white', ec='black')
+                ax.add_artist(circle2)
+    
+                ax.text(
+                0, 0, f"{s}",
+                ha='center', va='center', fontsize= font_size, weight="bold"
+                )
+    
+    
+            legend_handles = [
+                Patch(facecolor=cmap_dict[label], edgecolor="black", label=label)
+                for label in legend_labels
+            ]
+    
+            fig.legend(
+                handles=legend_handles,
+                loc="center right",
+                bbox_to_anchor=legend_bbox,
+                ncol=legend_split_col,
+                title=""
+            )
+    
+            plt.tight_layout()
+            plt.show()
+                    
+                
+        else:
+        
+            
+    
+            labels = [f"{row['pct']:.1f}%" for _, row in df.iterrows()]
+        
+    
+            legend_labels = [f"{row['name']}" for _, row in df.iterrows()]
+        
+            
+            cmap = plt.get_cmap(cmap)
+            colors = [cmap(i / len(df)) for i in range(len(df))]
+            
+            fig, ax = plt.subplots(figsize=(width, height), subplot_kw=dict(aspect="equal"))
+            
+            
+            wedges, texts = ax.pie(df["n"], 
+                                   startangle=90, 
+                                   labeldistance=1.05, 
+                                   colors=colors, 
+                                   wedgeprops={'linewidth': 0.5, 'edgecolor': 'black'})
+            
+            
+            kw = dict(arrowprops=dict(arrowstyle="-"),
+                       zorder=0, va="center")
+            n = 0
+            for i, p in enumerate(wedges):
+                ang = (p.theta2 - p.theta1)/2. + p.theta1
+                y = np.sin(np.deg2rad(ang))
+                x = np.cos(np.deg2rad(ang))
+                horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+                connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+                kw["arrowprops"].update({"connectionstyle": connectionstyle})
+                if len(labels[i]) > 0:
+                    n += offset_labels
+                    
+                    ax.annotate(labels[i], xy=(x, y), xytext=(1.01*x+(n*x/4), y*1.01+(n*y/4)),
+                                horizontalalignment=horizontalalignment, fontsize=font_size, weight="bold", **kw)
+            
+           
+            circle2 = plt.Circle( (0,0), 0.6, color='white')
+            circle2.set_edgecolor('black')
+            
+            p=plt.gcf()
+            p.gca().add_artist(circle2)
+            
+            
+            ax.legend(
+                wedges,
+                legend_labels,
+                title="",
+                loc="center left",
+                bbox_to_anchor=legend_bbox,  
+                ncol=legend_split_col
+            )
+            
+            plt.show()
+                
+            
+        return fig
+            
+          
+                
+    
+    
+    def bar_composition(self, 
+                        cmap = 'tab20b', 
+                        width = 2, 
+                        height = 6, 
+                        font_size = 15,
+                        legend_split_col: int = 1,
+                        legend_bbox: tuple = (1.3, 1)):
+        
+        """
+        Visualize the composition of cell lineages using bar plots.
+     
+        Produces bar plots showing the distribution of features stored in 
+        `self.composition_data`. If multiple sets are present, a separate 
+        bar is drawn for each set. Percentages are annotated alongside the bars.
+     
+        Parameters
+        ----------
+        cmap : str, default 'tab20b'
+            Colormap used for stacked bars.
+        width : int, default 2
+            Width of each subplot (per set).
+        height : int, default 6
+            Height of the figure.
+        font_size : int, default 15
+            Font size for labels and annotations.
+        legend_split_col : int, default 1
+            Number of columns in the legend.
+        legend_bbox : tuple, default (1.3, 1)
+            Bounding box anchor position for the legend.
+  
+     
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Stacked bar plot visualization of composition data.
+        """
+        
+        df = self.composition_data
+        df["num"] = range(1, len(df) + 1)
+    
+        if 'set' in df.columns and len(set(df['set'])) > 1:
+            
+            sets = list(set(df['set']))
+            fig, axes = plt.subplots(1, len(sets), figsize=(width*len(sets), height))  
+    
+            cmap = plt.get_cmap(cmap)
+    
+            set_nam = len(set(df['name']))
+    
+            legend_labels = list(set(df['name']))
+    
+            colors = [cmap(i / set_nam) for i in range(set_nam)]
+    
+            cmap_dict = dict(zip(legend_labels, colors))
+    
+    
+            for idx, s in enumerate(sets):
+                ax = axes[idx]
+                
+                tmp_df = df[df['set'] == s].reset_index(drop=True)
+                
+                labels = [f"{row['pct']:.1f}%" for _, row in tmp_df.iterrows()]
+                
+                values = tmp_df['n'].values
+                total = sum(values)
+                values = [v / total * 100 for v in values]
+                values = [round(v, 2) for v in values]
+    
+                idx_max = np.argmax(values)
+                correction = 100 - sum(values)
+                values[idx_max] += correction
+                
+                
+                names = tmp_df['name'].values
+                perc = tmp_df['pct'].values
+                nums = tmp_df['num'].values
+    
+    
+                bottom = 0
+                centers = []
+                for name, num, val, color in zip(names, nums, values, colors):
+                    ax.bar(s, val, bottom=bottom, color=cmap_dict[name], label=name)
+                    centers.append(bottom + val/2)
+                    bottom += val
+    
+                y_positions = np.linspace(centers[0], centers[-1], len(centers))
+                x_text = -0.8 
+    
+                for y_label, y_center, pct, num in zip(y_positions, centers, perc, nums):
+                    ax.annotate(f"{pct:.1f}%" ,
+                                xy=(0, y_center), xycoords='data',
+                                xytext=(x_text, y_label), textcoords='data',
+                                ha='right', va='center', fontsize=font_size,
+                                arrowprops=dict(arrowstyle="->",
+                                                lw=1,
+                                                color="black",
+                                                connectionstyle="angle3,angleA=0,angleB=90"))  
+                
+                ax.set_ylim(0, 100)
+                ax.set_xlabel(s, fontsize=font_size)
+                ax.xaxis.label.set_rotation(30)
+    
+                ax.set_xticks([])
+                ax.set_yticks([])
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
+    
+            legend_handles = [
+                Patch(facecolor=cmap_dict[label], edgecolor="black", label=label)
+                for label in legend_labels
+            ]
+    
+            fig.legend(
+                handles=legend_handles,
+                loc="center right",
+                bbox_to_anchor=legend_bbox,
+                ncol=legend_split_col,
+                title=""
+            )
+    
+            plt.tight_layout()
+            plt.show()
+                    
+    
+            
+        else:
+            
+            
+            cmap = plt.get_cmap(cmap)
+            
+            colors = [cmap(i / len(df)) for i in range(len(df))]
+    
+            fig, ax = plt.subplots(figsize=(width, height))
+    
+            values = df['n'].values
+            names = df['name'].values
+            perc = df['pct'].values
+            nums = df['num'].values
+    
+    
+            bottom = 0
+            centers = []
+            for name, num, val, color in zip(names, nums, values, colors):
+                ax.bar(0, val, bottom=bottom, color=color, label=f"{num}) {name}")
+                centers.append(bottom + val/2)
+                bottom += val
+    
+            y_positions = np.linspace(centers[0], centers[-1], len(centers))
+            x_text = -0.8 
+    
+            for y_label, y_center, pct, num in zip(y_positions, centers, perc, nums):
+                ax.annotate(f'{num}) {pct}',
+                            xy=(0, y_center), xycoords='data',
+                            xytext=(x_text, y_label), textcoords='data',
+                            ha='right', va='center', fontsize=9,
+                            arrowprops=dict(arrowstyle="->",
+                                            lw=1,
+                                            color="black",
+                                            connectionstyle="angle3,angleA=0,angleB=90"))  
+    
+            ax.set_xticks([])
+            ax.set_yticks([])
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+    
+            ax.legend(title="Legend", bbox_to_anchor=legend_bbox, loc='upper left', ncol=legend_split_col)
+            
+            plt.tight_layout()
+            plt.show()
+    
+    
+        return fig
+        
+       
+        
+       
+    def cell_regression(self, 
+                        cell_x:str, 
+                        cell_y:str,
+                        set_x:str|None, 
+                        set_y:str|None,
+                        threshold = 10, 
+                        image_width = 12, 
+                        image_high = 7, 
+                        color = 'black'):
+    
+        """
+        Perform regression analysis between two selected cells and visualize the relationship.
+    
+        This function computes a linear regression between two specified cells from 
+        aggregated normalized data, plots the regression line with scatter points, 
+        annotates regression statistics, and highlights potential outliers.
+    
+        Parameters
+        ----------
+        cell_x : str
+            Name of the first cell (X-axis).
+        cell_y : str
+            Name of the second cell (Y-axis).
+        set_x : str or None
+            Dataset identifier corresponding to `cell_x`. If None, cell is selected only by name.
+        set_y : str or None
+            Dataset identifier corresponding to `cell_y`. If None, cell is selected only by name.
+        threshold : int or float, default 10
+            Threshold for detecting outliers. Points deviating from the mean or diagonal by more 
+            than this value are annotated.
+        image_width : int, default 12
+            Width of the regression plot (in inches).
+        image_high : int, default 7
+            Height of the regression plot (in inches).
+        color : str, default 'black'
+            Color of the regression scatter points and line.
+    
+        Returns
+        -------
+        matplotlib.figure.Figure
+            Regression plot figure with annotated regression line, R², p-value, and outliers.
+    
+        Raises
+        ------
+        ValueError
+            If `cell_x` or `cell_y` are not found in the dataset.
+            If multiple matches are found for a cell name and `set_x`/`set_y` are not specified.
+    
+        Notes
+        -----
+        - The function automatically calls `jseq_object.average()` if aggregated data is not available.
+        - Outliers are annotated with their corresponding index labels.
+        - Regression is computed using `scipy.stats.linregress`.
+    
+        Examples
+        --------
+        >>> obj.cell_regression(cell_x="Purkinje", cell_y="Granule", set_x="Exp1", set_y="Exp2")
+        >>> obj.cell_regression(cell_x="NeuronA", cell_y="NeuronB", threshold=5, color="blue")
+        """
+            
+        if None is self.agg_normalized_data:
+            self.average()      
+        
+        
+        metadata = self.agg_metadata
+        data = self.agg_normalized_data
+        
+        if set_x is not None and set_y is not None:
+            data.columns = metadata['cell_names'] + ' # ' + metadata['sets']
+            cell_x = cell_x + ' # ' + set_x
+            cell_y = cell_y + ' # ' + set_y
+    
+    
+        else:
+            data.columns = metadata['cell_names']
+    
+        if not cell_x in data.columns:
+            raise ValueError("'cell_x' value not in cell names!")
+            
+        if not cell_y in data.columns:
+            raise ValueError("'cell_y' value not in cell names!")
+        
+        if list(data.columns).count(cell_x) > 1:
+            raise ValueError(
+                f"'{cell_x}' occurs more than once. If you want to select a specific cell, "
+                f"please also provide the corresponding 'set_x' and 'set_y' values."
+            )
+        
+        if list(data.columns).count(cell_y) > 1:
+            raise ValueError(
+                f"'{cell_y}' occurs more than once. If you want to select a specific cell, "
+                f"please also provide the corresponding 'set_x' and 'set_y' values."
+            )
+    
+            
+        fig, ax = plt.subplots(figsize=(image_width, image_high))
+        ax = sns.regplot(x=cell_x, y=cell_y, data=data, color=color)
+        
+        slope, intercept, r_value, p_value, std_err = stats.linregress(data[cell_x], data[cell_y])
+        equation = 'y = {:.2f}x + {:.2f}'.format(slope, intercept)
+        
+        ax.annotate('R-squared = {:.2f}\nP-value = {:.2f}\n{}'.format(r_value**2, p_value, equation),
+                    xy=(0.05, 0.90), xycoords='axes fraction', fontsize=12)
+        
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        
+        
+        diff = []
+        x_mean, y_mean = data[cell_x].mean(), data[cell_y].mean()
+        for i, (xi, yi) in enumerate(zip(data[cell_x], data[cell_y])):
+            diff.append(abs(xi-x_mean))
+            diff.append(abs(yi-y_mean))
+                        
+                
+        def annotate_outliers(x, y, threshold):
+            texts = []
+            x_mean, y_mean = x.mean(), y.mean()
+            for i, (xi, yi) in enumerate(zip(x, y)):
+                if abs(xi-x_mean) > threshold or abs(yi-y_mean) > threshold or abs(yi-xi) > threshold:
+                    text = ax.text(xi, yi, data.index[i])
+                    texts.append(text)
+            
+            return texts
+              
+    
+        texts = annotate_outliers(data[cell_x], data[cell_y], threshold)
+        
+        
+        adjust_text(texts, arrowprops=dict(arrowstyle='-', color='gray', alpha=.5))
+      
+    
+        plt.show()   
+        
+        return fig
+        
     
 
 
