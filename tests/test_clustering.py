@@ -1,13 +1,13 @@
-import pytest
-import pandas as pd
 import matplotlib as mpl
+import pandas as pd
+import pytest
 
 from scdiff.scdiff import Clustering, load_sparse
 
 
 @pytest.fixture(scope="session")
 def clusters_obj():
-    data, metadata = load_sparse(path='data/set1', name='set1')
+    data, metadata = load_sparse(path="data/set1", name="set1")
     clusters = Clustering.add_data_frame(data, metadata)
     return clusters
 
@@ -31,15 +31,15 @@ def test_knee_plot_pca(clusters_obj):
     assert isinstance(fig, mpl.figure.Figure)
 
 
-
 def test_harmonize_sets(clusters_obj):
     clusters_obj.harmonize_sets(harmonize_type="harmony")
-    assert isinstance(clusters_obj.harmonized_PCA, pd.DataFrame)
-
+    assert isinstance(clusters_obj.harmonized_pca, pd.DataFrame)
 
 
 def test_find_clusters_pca(clusters_obj):
-    clusters_obj.find_clusters_PCA(pc_num=5, eps=0.5, min_samples=5, width=4, height=3, harmonized=False)
+    clusters_obj.find_clusters_PCA(
+        pc_num=5, eps=0.5, min_samples=5, width=4, height=3, harmonized=False
+    )
     assert "PCA_clusters" in clusters_obj.clustering_metadata.columns
 
 
@@ -49,11 +49,9 @@ def test_perform_umap(clusters_obj):
     assert isinstance(umap_data, pd.DataFrame)
 
 
-
 def test_knee_plot_umap(clusters_obj):
     fig = clusters_obj.knee_plot_umap(eps=0.5, min_samples=5)
     assert isinstance(fig, mpl.figure.Figure)
-
 
 
 def test_find_clusters_umap(clusters_obj):
@@ -67,7 +65,9 @@ def test_umap_vis(clusters_obj):
 
 
 def test_umap_feature(clusters_obj):
-    fig = clusters_obj.UMAP_feature(feature_name="KIT", features_data=None, point_size=0.6)
+    fig = clusters_obj.UMAP_feature(
+        feature_name="KIT", features_data=None, point_size=0.6
+    )
     assert isinstance(fig, mpl.figure.Figure)
 
 
@@ -85,5 +85,3 @@ def test_return_clusters_umap(clusters_obj):
     clusters = clusters_obj.return_clusters(clusters="umap")
     assert isinstance(clusters, pd.Series)
     assert clusters.nunique() > 1
-    
-    

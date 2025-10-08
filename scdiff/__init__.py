@@ -19,5 +19,3 @@ from .scdiff import *
 print("")
 print("Welcome in scDiff v.1.0.0 library")
 print("")
-
-
