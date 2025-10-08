@@ -128,7 +128,7 @@ def test_pca_umap(jseq_object):
     )
 
     jseq_object.perform_PCA(pc_num=10)
-    jseq_object.harmonize_sets(harmonize_type="harmony")
+    jseq_object.harmonize_sets()
     jseq_object.perform_UMAP(factorize=True, umap_num=2, pc_num=5, harmonized=True)
     fig = jseq_object.UMAP_vis(
         names_slot="cell_names",

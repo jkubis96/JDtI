@@ -32,7 +32,7 @@ def test_knee_plot_pca(clusters_obj):
 
 
 def test_harmonize_sets(clusters_obj):
-    clusters_obj.harmonize_sets(harmonize_type="harmony")
+    clusters_obj.harmonize_sets()
     assert isinstance(clusters_obj.harmonized_pca, pd.DataFrame)
 
 
