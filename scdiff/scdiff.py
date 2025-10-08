@@ -1009,8 +1009,10 @@ class COMPsc(Clustering):
         Saves the COMPsc object to a pickle file on disk.
     load_project(path)
         Loads a previously saved COMPsc object from a pickle file.
-    reduce(reg, inc_set=False)
-        Removes columns from data tables where column names contain a specified substring.
+    reduce_cols(reg, inc_set=False)
+        Removes columns from data tables where column names contain a specified name or partial substring.
+    reduce_rows(reg, inc_set=False)
+        Removes rows from data tables where column names contain a specified feature (gene) name.
     get_data(set_info=False)
         Returns normalized data with optional set annotations in column names.
     get_metadata()
@@ -1188,18 +1190,24 @@ class COMPsc(Clustering):
     
 
     
-    def reduce(self, 
-               reg:str, 
+    def reduce_cols(self, 
+               reg:str | None = None, 
+               full:str | None = None, 
                name_slot:str = 'cell_names',
                inc_set:bool = False):
         
         """
-        Remove columns (cells) whose names contain a substring `reg` from available tables.
+        Remove columns (cells) whose names contain a substring `reg` or 
+        full name `full` from available tables.
 
         Parameters
         ----------
-        reg : str
+        reg : str | None
             Substring to search for in column/cell names; matching columns will be removed.
+            If not None, `full` must be None.
+        full : str | None
+            Full name to search for in column/cell names; matching columns will be removed.
+            If not None, `reg` must be None.
         name_slot : str, default 'cell_names'
             Column in metadata to use as sample names.  
         inc_set : bool, default False
@@ -1217,113 +1225,357 @@ class COMPsc(Clustering):
             Raises ValueError if nothing matches the reduction mask.
         """
         
-        if self.input_data != None:
+        if reg is None and full is None:
+            raise ValueError("Both 'reg' and 'full' arguments not provided. Please provide at least one of them!")
+        
+        if reg is not None and full is not None:
+            raise ValueError(
+                  "Both 'reg' and 'full' arguments are provided. "
+                  "Please provide only one of them!\n"
+                  "'reg' is used when only part of the name must be detected.\n"
+                  "'full' is used if the full name must be detected."
+              )
+
+        if reg is not None:
             
-            if inc_set:
+            if self.input_data != None:
                 
-                self.input_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
+                if inc_set:
+                    
+                    self.input_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
+                    
+                else:
+                    
+                    self.input_data.columns = self.input_metadata[name_slot] 
                 
-            else:
+                mask = [reg.upper() not in x.upper() for x in self.input_data.columns]
                 
-                self.input_data.columns = self.input_metadata[name_slot] 
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.input_data = self.input_data.loc[:, mask]
+    
+                    
             
-            mask = [reg not in x for x in self.input_data.columns]
+            if None is not self.normalized_data:
+                
+                if inc_set:
+                    
+                    self.normalized_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
+                    
+                    
+                else:
+                    
+                    self.normalized_data.columns = self.input_metadata[name_slot] 
+                    
+                    
+                mask = [reg.upper() not in x.upper() for x in self.normalized_data.columns]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.normalized_data = self.normalized_data.loc[:, mask]
+                
+    
+            
+            if None is not self.input_metadata:
+                
+                if inc_set:
+                    
+                    self.input_metadata['drop'] = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
+                    
+                else:
+                    
+                    self.input_metadata['drop'] = self.input_metadata[name_slot] 
+                    
+                
+                mask = [reg.upper() not in x.upper() for x in self.input_metadata['drop']]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.input_metadata = self.input_metadata.loc[mask, :].reset_index(drop = True)
+                
+                self.input_metadata = self.input_metadata.drop(columns=["drop"], errors="ignore")
+    
+                
+            
+            if None is not self.agg_normalized_data:
+                
+                if inc_set:
+                    
+                    self.agg_normalized_data.columns = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
+                    
+                else:
+                    
+                    self.agg_normalized_data.columns = self.agg_metadata[name_slot] 
+                
+                
+                mask = [reg.upper() not in x.upper() for x in self.agg_normalized_data.columns]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.agg_normalized_data = self.agg_normalized_data.loc[:, mask]
+                
+    
+    
+            if None is not self.agg_metadata:
+                
+                if inc_set:
+                    
+                    self.agg_metadata['drop'] = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
+                    
+                else:
+                    
+                    self.agg_metadata['drop'] = self.agg_metadata[name_slot] 
+                    
+                
+                mask = [reg.upper() not in x.upper() for x in self.agg_metadata['drop']]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.agg_metadata = self.agg_metadata.loc[mask, :].reset_index(drop = True)
+                
+                self.agg_metadata = self.agg_metadata.drop(columns=["drop"], errors="ignore")
+                
+        elif full is not None:
+            
+            if self.input_data != None:
+                
+                if inc_set:
+                    
+                    self.input_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
+                    
+                    if '#' not in full:
+                        
+                        self.input_data.columns = self.input_metadata[name_slot]
+
+                        print(
+                            "Not include the set info (name # set) in the 'full' argument, where 'inc_set' is True"
+                            "Only the names will be compared, without considering the set information."
+                        )
+
+
+                else:
+                    
+                    self.input_data.columns = self.input_metadata[name_slot] 
+                
+                mask = [full.upper() != x.upper() for x in self.input_data.columns]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.input_data = self.input_data.loc[:, mask]
+    
+                    
+            
+            if None is not self.normalized_data:
+                
+                if inc_set:
+                    
+                    self.normalized_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
+                    
+                    if '#' not in full:
+                        
+                        self.normalized_data.columns = self.input_metadata[name_slot]
+
+
+                        print(
+                            "Not include the set info (name # set) in the 'full' argument, where 'inc_set' is True"
+                            "Only the names will be compared, without considering the set information."
+                        )
+                    
+                else:
+                    
+                    self.normalized_data.columns = self.input_metadata[name_slot] 
+                    
+                    
+                mask = [full.upper() != x.upper() for x in self.normalized_data.columns]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.normalized_data = self.normalized_data.loc[:, mask]
+                
+    
+            
+            if None is not self.input_metadata:
+                
+                if inc_set:
+                    
+                    self.input_metadata['drop'] = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
+                    
+                    if '#' not in full:
+                        
+                        self.input_metadata['drop'] = self.input_metadata[name_slot]
+
+
+
+                        print(
+                            "Not include the set info (name # set) in the 'full' argument, where 'inc_set' is True"
+                            "Only the names will be compared, without considering the set information."
+                        )
+                    
+                    
+                else:
+                    
+                    self.input_metadata['drop'] = self.input_metadata[name_slot] 
+                    
+                
+                mask = [full.upper() != x.upper() for x in self.input_metadata['drop']]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.input_metadata = self.input_metadata.loc[mask, :].reset_index(drop = True)
+                
+                self.input_metadata = self.input_metadata.drop(columns=["drop"], errors="ignore")
+    
+                
+            
+            if None is not self.agg_normalized_data:
+                
+                if inc_set:
+                    
+                    self.agg_normalized_data.columns = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
+                    
+                    if '#' not in full:
+                        
+                        self.agg_normalized_data.columns = self.agg_metadata[name_slot] 
+
+                        print(
+                            "Not include the set info (name # set) in the 'full' argument, where 'inc_set' is True"
+                            "Only the names will be compared, without considering the set information."
+                        )
+                else:
+                    
+                    self.agg_normalized_data.columns = self.agg_metadata[name_slot] 
+                
+                
+                mask = [full.upper() != x.upper() for x in self.agg_normalized_data.columns]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.agg_normalized_data = self.agg_normalized_data.loc[:, mask]
+                
+    
+    
+            if None is not self.agg_metadata:
+                
+                if inc_set:
+                    
+                    self.agg_metadata['drop'] = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
+                    
+                    if '#' not in full:
+                        
+                        self.agg_metadata['drop'] = self.agg_metadata[name_slot]
+
+
+                        print(
+                            "Not include the set info (name # set) in the 'full' argument, where 'inc_set' is True"
+                            "Only the names will be compared, without considering the set information."
+                        )
+                else:
+                    
+                    self.agg_metadata['drop'] = self.agg_metadata[name_slot] 
+                    
+                
+                mask = [full.upper() != x.upper() for x in self.agg_metadata['drop']]
+                
+                if len([y for y in mask if y is False]) == 0:
+                    raise ValueError("Nothing found to reduce")
+                
+                self.agg_metadata = self.agg_metadata.loc[mask, :].reset_index(drop = True)
+                
+                self.agg_metadata = self.agg_metadata.drop(columns=["drop"], errors="ignore")
+                
+                
+        self.gene_calculation()
+        self.cells_calculation()
+            
+        
+    def reduce_rows(self, 
+               features_list:list):
+        
+        """
+        Remove rows (features) whose names are included in features_list.
+
+        Parameters
+        ----------
+        features_list : list
+            List of features to search for in index/gene names; matching entries will be removed.
+           
+
+        Update
+        ------------
+            Mutates `self.input_data`, `self.normalized_data`, `self.input_metadata`,
+            `self.agg_normalized_data`, and `self.agg_metadata` (if they exist),
+            removing columns/rows that match `reg`.
+          
+        Raises
+        ------
+            Prints a message listing features that are not found in the data.
+        """
+        
+
+        if None is not self.input_data:
+            
+            res = find_features(self.input_data, features = features_list)
+            
+            res_list = [x.upper() for x in res['included']]
+            
+            mask = [x.upper() not in res_list for x in self.input_data.index]
+            
             
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing found to reduce")
             
-            self.input_data = self.input_data.loc[:, mask]
+            self.input_data = self.input_data.loc[mask, :]
 
                 
         
         if None is not self.normalized_data:
             
-            if inc_set:
-                
-                self.normalized_data.columns = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
-                
-                
-            else:
-                
-                self.normalized_data.columns = self.input_metadata[name_slot] 
-                
-                
-            mask = [reg not in x for x in self.normalized_data.columns]
+            res = find_features(self.normalized_data, features = features_list)
+            
+            res_list = [x.upper() for x in res['included']]
+            
+            mask = [x.upper() not in res_list for x in self.normalized_data.index]
+            
             
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing found to reduce")
             
-            self.normalized_data = self.normalized_data.loc[:, mask]
-            
+            self.normalized_data = self.normalized_data.loc[mask, :]
+                    
 
-        
-        if None is not self.input_metadata:
-            
-            if inc_set:
-                
-                self.input_metadata['drop'] = self.input_metadata[name_slot] + ' # ' + self.input_metadata['sets']
-                
-            else:
-                
-                self.input_metadata['drop'] = self.input_metadata[name_slot] 
-                
-            
-            mask = [reg not in x for x in self.input_metadata['drop']]
-            
-            if len([y for y in mask if y is False]) == 0:
-                raise ValueError("Nothing found to reduce")
-            
-            self.input_metadata = self.input_metadata.loc[mask, :].reset_index(drop = True)
-            
-            self.input_metadata = self.input_metadata.drop(columns=["drop"], errors="ignore")
 
-            
         
         if None is not self.agg_normalized_data:
             
-            if inc_set:
-                
-                self.agg_normalized_data.columns = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
-                
-            else:
-                
-                self.agg_normalized_data.columns = self.agg_metadata[name_slot] 
+            res = find_features(self.agg_normalized_data, features = features_list)
             
+            res_list = [x.upper() for x in res['included']]
             
-            mask = [reg not in x for x in self.agg_normalized_data.columns]
+            mask = [x.upper() not in res_list for x in self.agg_normalized_data.index]
+            
             
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing found to reduce")
             
-            self.agg_normalized_data = self.agg_normalized_data.loc[:, mask]
-            
-
-
-        if None is not self.agg_metadata:
-            
-            if inc_set:
+            self.agg_normalized_data = self.agg_normalized_data.loc[mask, :]
+                    
+        if len(res['not_included']) > 0:
+            print('\nFeatures not found:')
+            for i in res['not_included']:
+                print(i)
                 
-                self.agg_metadata['drop'] = self.agg_metadata[name_slot] + ' # ' + self.agg_metadata['sets']
-                
-            else:
-                
-                self.agg_metadata['drop'] = self.agg_metadata[name_slot] 
-                
-            
-            mask = [reg not in x for x in self.agg_metadata['drop']]
-            
-            if len([y for y in mask if y is False]) == 0:
-                raise ValueError("Nothing found to reduce")
-            
-            self.agg_metadata = self.agg_metadata.loc[mask, :].reset_index(drop = True)
-            
-            self.agg_metadata = self.agg_metadata.drop(columns=["drop"], errors="ignore")
-            
-            
         self.gene_calculation()
         self.cells_calculation()
-            
-            
+              
     
     def get_data(self, set_info:bool = False):
         
@@ -2166,9 +2418,19 @@ class COMPsc(Clustering):
         final_results = []
 
 
-        if cells and isinstance(cells, list) and sets is None:
+        if isinstance(cells, list) and sets is None:
             print('\nAnalysis started...\nComparing selected cells to the whole set...')
             choose.index = self.input_metadata['cell_names'] + ' # ' + self.input_metadata['sets']
+            
+            if '#' not in cells[0]:
+                choose.index = self.input_metadata['cell_names'] 
+
+                print(
+                    "Not include the set info (name # set) in the 'cells' list. "
+                    "Only the names will be compared, without considering the set information."
+                )
+
+                  
 
             labels = ['target' if idx in cells else 'rest' for idx in choose.index]
             valid = list(set(choose.index[[i for i, x in enumerate(labels) if x == 'target']]))
@@ -2212,8 +2474,9 @@ class COMPsc(Clustering):
 
         elif cells is None and isinstance(sets, dict):
             print('\nAnalysis started...\nComparing groups...')
+            
             choose.index = self.input_metadata['sets']
-
+            
             group_list = list(sets.keys())
             if len(group_list) != 2:
                 print('Only pairwise group comparison is supported.')
@@ -2235,16 +2498,27 @@ class COMPsc(Clustering):
         elif isinstance(cells, dict) and sets is None:
             print('\nAnalysis started...\nComparing groups...')
             choose.index = self.input_metadata['cell_names'] + ' # ' + self.input_metadata['sets']
+            
 
-            group_list = list(sets.keys())
+            if '#' not in cells[list(cells.keys())[0]][0]:
+                choose.index = self.input_metadata['cell_names'] 
+
+                print(
+                    "Not include the set info (name # set) in the 'cells' dict. "
+                    "Only the names will be compared, without considering the set information."
+                )
+
+                  
+
+            group_list = list(cells.keys())
             if len(group_list) != 2:
                 print('Only pairwise group comparison is supported.')
                 return None
 
 
             labels = [
-                'target' if idx in sets[group_list[0]] else
-                'rest' if idx in sets[group_list[1]] else
+                'target' if idx in cells[group_list[0]] else
+                'rest' if idx in cells[group_list[1]] else
                 'drop'
                 for idx in choose.index
             ]

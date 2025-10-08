@@ -1032,7 +1032,7 @@ def calc_DEG(data,
                 choose.index = metadata['primary_names']
                 print(
                     "You provided 'metadata_list', but did not include the set info (name # set) "
-                    "in the 'entities' dict. "
+                    "in the 'entities' list. "
                     "Only the names will be compared, without considering the set information."
                 )
 
