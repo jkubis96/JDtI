@@ -20,7 +20,8 @@ dependencies = [
     "plotly (>=6.3.0,<7.0.0)",
     "harmonypy (==0.0.10)",
     "umap-learn (>=0.5.9.post2,<0.6.0)",
-    #"spyder-kernels (==2.4)"
+    #"spyder-kernels (==2.4)",
+    "pytest (>=8.4.2,<9.0.0)"
 ]
 
 
