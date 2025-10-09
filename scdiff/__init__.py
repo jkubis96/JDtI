@@ -1,7 +1,7 @@
 print()
 
 
-pattern = r"""
+__pattern__ = r"""
            _  ____   _         _____              _
           | ||  _ \ (_)       / ____|            | |
           | || |_) | _   ___ | (___   _   _  ___ | |_  ___  _ __ ___
@@ -12,7 +12,7 @@ pattern = r"""
                                       |___/
 """
 
-print(pattern)
+print(__pattern__)
 
 from .scdiff import *
 

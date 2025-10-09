@@ -48,28 +48,40 @@ class Clustering:
     -------
     add_data_frame(data, metadata)
         Class method to create a Clustering instance from a DataFrame and metadata.
+
     harmonize_sets()
         Perform batch effect harmonization on PCA data.
+
     perform_PCA(pc_num=100, width=8, height=6)
         Perform PCA on the dataset and visualize the first two PCs.
+
     knee_plot_PCA(width=8, height=6)
         Plot the cumulative variance explained by PCs to determine optimal dimensionality.
+
     find_clusters_PCA(pc_num=0, eps=0.5, min_samples=10, width=8, height=6, harmonized=False)
         Apply DBSCAN clustering to PCA embeddings and visualize results.
+
     perform_UMAP(factorize=False, umap_num=100, pc_num=0, harmonized=False, ...)
         Compute UMAP embeddings with optional parameter tuning.
+
     knee_plot_umap(eps=0.5, min_samples=10)
         Determine optimal UMAP dimensionality using silhouette scores.
+
     find_clusters_UMAP(umap_n=5, eps=0.5, min_samples=10, width=8, height=6)
         Apply DBSCAN clustering on UMAP embeddings and visualize clusters.
+
     UMAP_vis(names_slot='cell_names', set_sep=True, point_size=0.6, ...)
         Visualize UMAP embeddings with labels and optional cluster numbering.
+
     UMAP_feature(feature_name, features_data=None, point_size=0.6, ...)
         Plot a single feature over UMAP coordinates with customizable colormap.
+
     get_umap_data()
         Return the UMAP embeddings along with cluster labels if available.
+
     get_pca_data()
         Return the PCA results along with cluster labels if available.
+
     return_clusters(clusters='umap')
         Return the cluster labels for UMAP or PCA embeddings.
 
@@ -80,19 +92,56 @@ class Clustering:
     """
 
     def __init__(self, data, metadata):
+        """
+        Initialize the clustering class with data and optional metadata.
+
+        Parameters
+        ----------
+        data : pandas.DataFrame
+            Input data for clustering. Columns are considered as samples.
+
+        metadata : pandas.DataFrame, optional
+            Metadata for the samples. If None, a default DataFrame with column
+            names as 'cell_names' is created.
+
+        Attributes
+        ----------
+        -clustering_data : pandas.DataFrame
+        -clustering_metadata : pandas.DataFrame
+        -subclusters : None or dict
+        -explained_var : None or numpy.ndarray
+        -cumulative_var : None or numpy.ndarray
+        -pca : None or pandas.DataFrame
+        -harmonized_pca : None or pandas.DataFrame
+        -umap : None or pandas.DataFrame
+        """
 
         self.clustering_data = data
+        """The input data used for clustering."""
 
         if metadata is None:
             metadata = pd.DataFrame({"cell_names": list(data.columns)})
 
         self.clustering_metadata = metadata
+        """Metadata associated with the samples."""
+
         self.subclusters = None
+        """Placeholder for storing subcluster information."""
+
         self.explained_var = None
+        """Explained variance from PCA, initialized as None."""
+
         self.cumulative_var = None
+        """Cumulative explained variance from PCA, initialized as None."""
+
         self.pca = None
+        """PCA-transformed data, initialized as None."""
+
         self.harmonized_pca = None
+        """PCA data after batch effect harmonization, initialized as None."""
+
         self.umap = None
+        """UMAP embeddings, initialized as None."""
 
     @classmethod
     def add_data_frame(cls, data: pd.DataFrame, metadata: pd.DataFrame | None):
@@ -103,6 +152,7 @@ class Clustering:
         ----------
         data : pandas.DataFrame
             Input data with features as rows and samples/cells as columns.
+
         metadata : pandas.DataFrame or None
             Optional metadata for the samples.
             Each row corresponds to a sample/cell, and column names in this DataFrame
@@ -154,8 +204,10 @@ class Clustering:
         pc_num : int, default 100
             Number of principal components to compute.
             If 0, computes all available components.
+
         width : int or float, default 8
             Width of the PCA figure.
+
         height : int or float, default 6
             Height of the PCA figure.
 
@@ -168,8 +220,10 @@ class Clustering:
         -------
         self.pca : pandas.DataFrame
             DataFrame with principal component scores for each sample.
+
         self.explained_var : numpy.ndarray
             Percentage of variance explained by each principal component.
+
         self.cumulative_var : numpy.ndarray
             Cumulative explained variance.
         """
@@ -211,6 +265,7 @@ class Clustering:
         ----------
         width : int, default 8
             Width of the figure.
+
         height : int or, default 6
             Height of the figure.
 
@@ -254,15 +309,20 @@ class Clustering:
         pc_num : int, default 2
             Number of principal components to use for clustering.
             If 0, uses all available components.
+
         eps : float, default 0.5
             Maximum distance between two points for them to be considered
             as neighbors (DBSCAN parameter).
+
         min_samples : int, default 10
             Minimum number of samples required to form a cluster (DBSCAN parameter).
+
         width : int, default 8
             Width of the output scatter plot.
+
         height : int, default 6
             Height of the output scatter plot.
+
         harmonized : bool, default False
             If True, use harmonized PCA data (`self.harmonized_pca`).
             If False, use standard PCA results (`self.pca`).
@@ -277,6 +337,7 @@ class Clustering:
         -------
         self.clustering_metadata['PCA_clusters'] : list
             Cluster labels assigned to each cell/sample.
+
         self.input_metadata['PCA_clusters'] : list, optional
             Cluster labels stored in input metadata (if available).
         """
@@ -358,44 +419,54 @@ class Clustering:
         factorize : bool, default False
             If True, categorical sample labels (from column names) are factorized
             and used as supervision in UMAP fitting.
+
         umap_num : int, default 100
             Number of UMAP dimensions to compute. If 0, matches the input dimension.
+
         pc_num : int, default 0
             Number of principal components to use as UMAP input.
             If 0, use all available components or raw data.
+
         harmonized : bool, default False
             If True, use harmonized PCA embeddings (`self.harmonized_pca`).
             If False, use standard PCA or raw scaled data.
+
         n_neighbors : int, default 5
             UMAP parameter controlling the size of the local neighborhood.
+
         min_dist : float, default 0.1
             UMAP parameter controlling minimum allowed distance between embedded points.
+
         spread : int | float, default 1.0
             Effective scale of embedded space (UMAP parameter).
+
         set_op_mix_ratio : int | float, default 1.0
             Interpolation parameter between union and intersection in fuzzy sets.
+
         local_connectivity : int, default 1
             Number of nearest neighbors assumed for each point.
+
         repulsion_strength : int | float, default 1.0
             Weighting applied to negative samples during optimization.
+
         negative_sample_rate : int, default 5
             Number of negative samples per positive sample in optimization.
+
         width : int, default 8
             Width of the output scatter plot.
+
         height : int, default 6
             Height of the output scatter plot.
-
 
         Updates
         -------
         self.umap : pandas.DataFrame
             Table of UMAP embeddings with columns `UMAP1 ... UMAPn`.
 
-
         Notes
         -----
-        - For supervised UMAP (`factorize=True`), categorical codes from column
-          names of the dataset are used as labels.
+        For supervised UMAP (`factorize=True`), categorical codes from column
+        names of the dataset are used as labels.
         """
 
         scaler = StandardScaler()
@@ -475,6 +546,7 @@ class Clustering:
         ----------
         eps : float, default 0.5
             DBSCAN eps parameter for clustering each UMAP dimension.
+
         min_samples : int, default 10
             Minimum number of samples to form a cluster in DBSCAN.
 
@@ -530,13 +602,17 @@ class Clustering:
         umap_n : int, default 5
             Number of UMAP dimensions to use for DBSCAN clustering.
             Must be <= number of columns in `self.umap`.
+
         eps : float | int, default 0.5
             Maximum neighborhood distance between two samples for them to be considered
             as in the same cluster (DBSCAN parameter).
+
         min_samples : int, default 10
             Minimum number of samples in a neighborhood to form a cluster (DBSCAN parameter).
+
         width : int, default 8
             Figure width.
+
         height : int, default 6
             Figure height.
 
@@ -550,6 +626,7 @@ class Clustering:
         -------
         self.clustering_metadata['UMAP_clusters'] : list
             Cluster labels assigned to each cell/sample.
+
         self.input_metadata['UMAP_clusters'] : list, optional
             Cluster labels stored in input metadata (if available).
         """
@@ -603,18 +680,25 @@ class Clustering:
         ----------
         names_slot : str, default 'cell_names'
             Column in metadata to use as sample labels.
+
         set_sep : bool, default True
             If True, separate points by dataset.
+
         point_size : float, default 0.6
             Size of scatter points.
+
         font_size : int, default 6
             Font size for numbers on points.
+
         legend_split_col : int, default 2
             Number of columns in legend.
+
         width : int, default 8
             Figure width.
+
         height : int, default 6
             Figure height.
+
         inc_num : bool, default True
             If True, annotate points with numeric labels.
 
@@ -741,18 +825,24 @@ class Clustering:
         ----------
         feature_name : str
            Name of the feature to plot.
+
         features_data : pandas.DataFrame or None, default None
             If None, the function uses the DataFrame containing the clustering data.
             To plot features not used in clustering, provide a wider DataFrame
             containing the original feature values.
+
         point_size : float, default 0.6
             Size of scatter points in the plot.
+
         font_size : int, default 6
             Font size for axis labels and annotations.
+
         width : int, default 8
             Width of the matplotlib figure.
+
         height : int, default 6
             Height of the matplotlib figure.
+
         palette : str, default 'light'
             Color palette for expression visualization. Options are:
             - 'light'
@@ -926,8 +1016,8 @@ class Clustering:
 
         Notes
         -----
-        - Requires that clustering has already been performed
-          (e.g., using `find_clusters_UMAP` or `find_clusters_PCA`).
+        Requires that clustering has already been performed
+        (e.g., using `find_clusters_UMAP` or `find_clusters_PCA`).
         """
 
         if clusters.lower() == "umap":
@@ -942,86 +1032,112 @@ class Clustering:
 
 class COMPsc(Clustering):
     """
-     A class `COMPsc` (Comparison of single-cell data) designed for the integration,
-     analysis, and visualization of single-cell datasets.
+    A class `COMPsc` (Comparison of single-cell data) designed for the integration,
+    analysis, and visualization of single-cell datasets.
     The class supports independent dataset integration, subclustering of existing clusters,
-     marker detection, and multiple visualization strategies.
+    marker detection, and multiple visualization strategies.
 
-     The COMPsc class provides methods for:
+    The COMPsc class provides methods for:
 
-         - Normalizing and filtering single-cell data
-         - Loading and saving sparse 10x-style datasets
-         - Computing differential expression and marker genes
-         - Clustering and subclustering analysis
-         - Visualizing similarity and spatial relationships
-         - Aggregating data by cell and set annotations
-         - Managing metadata and renaming labels
-         - Plotting gene detection histograms and feature scatters
+        - Normalizing and filtering single-cell data
+        - Loading and saving sparse 10x-style datasets
+        - Computing differential expression and marker genes
+        - Clustering and subclustering analysis
+        - Visualizing similarity and spatial relationships
+        - Aggregating data by cell and set annotations
+        - Managing metadata and renaming labels
+        - Plotting gene detection histograms and feature scatters
 
-     Methods
-     -------
-     project_dir(path_to_directory, project_list)
-         Scans a directory to create a COMPsc instance mapping project names to their paths.
-     save_project(name, path=os.getcwd())
-         Saves the COMPsc object to a pickle file on disk.
-     load_project(path)
-         Loads a previously saved COMPsc object from a pickle file.
-     reduce_cols(reg, inc_set=False)
-         Removes columns from data tables where column names contain a specified name or partial substring.
-     reduce_rows(reg, inc_set=False)
-         Removes rows from data tables where column names contain a specified feature (gene) name.
-     get_data(set_info=False)
-         Returns normalized data with optional set annotations in column names.
-     get_metadata()
-         Returns the stored input metadata.
-     get_partial_data(names=None, features=None, name_slot='cell_names')
-         Return a subset of the data by sample names and/or features.
-     gene_calculation()
-         Calculates and stores per-cell gene detection counts as a pandas Series.
-     gene_histograme(bins=100)
-         Plots a histogram of genes detected per cell with an overlaid normal distribution.
-     gene_threshold(min_n=None, max_n=None)
-         Filters cells based on minimum and/or maximum gene detection thresholds.
-     load_sparse_from_projects(normalized_data=False)
-         Loads and concatenates sparse 10x-style datasets from project paths into count or normalized data.
-     rename_names(mapping, slot='cell_names')
-         Renames entries in a specified metadata column using a provided mapping dictionary.
-     rename_subclusters(mapping)
-         Renames subcluster labels using a provided mapping dictionary.
-     save_sparse(path_to_save=os.getcwd(), name_slot='cell_names', data_slot='normalized')
-         Exports data as 10x-compatible sparse files (matrix.mtx, barcodes.tsv, genes.tsv).
-     normalize_data(normalize=True, normalize_factor=100000)
-         Normalizes raw counts to counts-per-specified factor (e.g., CPM-like).
-     statistic(cells=None, sets=None, min_exp=0.01, min_pct=0.1, n_proc=10)
-         Computes per-feature differential expression statistics (Mann-Whitney U) comparing target vs. rest groups.
-     calculate_difference_markers(min_exp=0, min_pct=0.25, n_proc=10, force=False)
-         Computes and caches differential markers using the statistic method.
-     clustering_features(features_list=None, name_slot='cell_names', p_val=0.05, top_n=25, adj_mean=True, beta=0.4)
-         Prepares clustering input by selecting marker features and optionally smoothing cell values.
-     average()
-         Aggregates normalized data by averaging across (cell_name, set) pairs.
-     estimating_similarity(method='pearson', p_val=0.05, top_n=25)
-         Computes pairwise correlation and Euclidean distance between aggregated samples.
-     similarity_plot(split_sets=True, set_info=True, cmap='seismic', width=12, height=10)
-         Visualizes pairwise similarity as a scatter plot with correlation as hue and scaled distance as point size.
-     spatial_similarity(set_info=True, bandwidth=1, n_neighbors=5, min_dist=0.1, legend_split=2, point_size=20, ...)
-         Creates a UMAP-like visualization of similarity relationships with cluster hulls and nearest-neighbor arrows.
-     subcluster_prepare(features, cluster)
-         Initializes a Clustering object for subcluster analysis on a selected parent cluster.
-     define_subclusters(umap_num=2, eps=0.5, min_samples=10, bandwidth=1, n_neighbors=5, min_dist=0.1, ...)
-         Performs UMAP and DBSCAN clustering on prepared subcluster data and stores cluster labels.
-     subcluster_features_scatter(colors='viridis', hclust='complete', img_width=3, img_high=5, label_size=6, ...)
-         Visualizes averaged expression and occurrence of features for subclusters as a scatter plot.
-     subcluster_DEG_scatter(top_n=3, min_exp=0, min_pct=0.25, p_val=0.05, colors='viridis', ...)
-         Plots top differential features for subclusters as a features-scatter visualization.
-     accept_subclusters()
-         Commits subcluster labels to main metadata by renaming cell names and clears subcluster data.
+    Methods
+    -------
+    project_dir(path_to_directory, project_list)
+        Scans a directory to create a COMPsc instance mapping project names to their paths.
 
+    save_project(name, path=os.getcwd())
+        Saves the COMPsc object to a pickle file on disk.
 
-     Raises
-     ------
-     ValueError
-         For invalid parameters, mismatched dimensions, or missing metadata.
+    load_project(path)
+        Loads a previously saved COMPsc object from a pickle file.
+
+    reduce_cols(reg, inc_set=False)
+        Removes columns from data tables where column names contain a specified name or partial substring.
+
+    reduce_rows(reg, inc_set=False)
+        Removes rows from data tables where column names contain a specified feature (gene) name.
+
+    get_data(set_info=False)
+        Returns normalized data with optional set annotations in column names.
+
+    get_metadata()
+        Returns the stored input metadata.
+
+    get_partial_data(names=None, features=None, name_slot='cell_names')
+        Return a subset of the data by sample names and/or features.
+
+    gene_calculation()
+        Calculates and stores per-cell gene detection counts as a pandas Series.
+
+    gene_histograme(bins=100)
+        Plots a histogram of genes detected per cell with an overlaid normal distribution.
+
+    gene_threshold(min_n=None, max_n=None)
+        Filters cells based on minimum and/or maximum gene detection thresholds.
+
+    load_sparse_from_projects(normalized_data=False)
+        Loads and concatenates sparse 10x-style datasets from project paths into count or normalized data.
+
+    rename_names(mapping, slot='cell_names')
+        Renames entries in a specified metadata column using a provided mapping dictionary.
+
+    rename_subclusters(mapping)
+        Renames subcluster labels using a provided mapping dictionary.
+
+    save_sparse(path_to_save=os.getcwd(), name_slot='cell_names', data_slot='normalized')
+        Exports data as 10x-compatible sparse files (matrix.mtx, barcodes.tsv, genes.tsv).
+
+    normalize_data(normalize=True, normalize_factor=100000)
+        Normalizes raw counts to counts-per-specified factor (e.g., CPM-like).
+
+    statistic(cells=None, sets=None, min_exp=0.01, min_pct=0.1, n_proc=10)
+        Computes per-feature differential expression statistics (Mann-Whitney U) comparing target vs. rest groups.
+
+    calculate_difference_markers(min_exp=0, min_pct=0.25, n_proc=10, force=False)
+        Computes and caches differential markers using the statistic method.
+
+    clustering_features(features_list=None, name_slot='cell_names', p_val=0.05, top_n=25, adj_mean=True, beta=0.4)
+        Prepares clustering input by selecting marker features and optionally smoothing cell values.
+
+    average()
+        Aggregates normalized data by averaging across (cell_name, set) pairs.
+
+    estimating_similarity(method='pearson', p_val=0.05, top_n=25)
+        Computes pairwise correlation and Euclidean distance between aggregated samples.
+
+    similarity_plot(split_sets=True, set_info=True, cmap='seismic', width=12, height=10)
+        Visualizes pairwise similarity as a scatter plot with correlation as hue and scaled distance as point size.
+
+    spatial_similarity(set_info=True, bandwidth=1, n_neighbors=5, min_dist=0.1, legend_split=2, point_size=20, ...)
+        Creates a UMAP-like visualization of similarity relationships with cluster hulls and nearest-neighbor arrows.
+
+    subcluster_prepare(features, cluster)
+        Initializes a Clustering object for subcluster analysis on a selected parent cluster.
+
+    define_subclusters(umap_num=2, eps=0.5, min_samples=10, bandwidth=1, n_neighbors=5, min_dist=0.1, ...)
+        Performs UMAP and DBSCAN clustering on prepared subcluster data and stores cluster labels.
+
+    subcluster_features_scatter(colors='viridis', hclust='complete', img_width=3, img_high=5, label_size=6, ...)
+        Visualizes averaged expression and occurrence of features for subclusters as a scatter plot.
+
+    subcluster_DEG_scatter(top_n=3, min_exp=0, min_pct=0.25, p_val=0.05, colors='viridis', ...)
+        Plots top differential features for subclusters as a features-scatter visualization.
+
+    accept_subclusters()
+        Commits subcluster labels to main metadata by renaming cell names and clears subcluster data.
+
+    Raises
+    ------
+    ValueError
+        For invalid parameters, mismatched dimensions, or missing metadata.
 
     """
 
@@ -1029,19 +1145,65 @@ class COMPsc(Clustering):
         self,
         objects=None,
     ):
+        """
+        Initialize the COMPsc class for single-cell data integration and analysis.
+
+        Parameters
+        ----------
+        objects : list or None, optional
+            Optional list of data objects to initialize the instance with.
+
+        Attributes
+        ----------
+        -objects : list or None
+        -input_data : pandas.DataFrame or None
+        -input_metadata : pandas.DataFrame or None
+        -normalized_data : pandas.DataFrame or None
+        -agg_metadata : pandas.DataFrame or None
+        -agg_normalized_data : pandas.DataFrame or None
+        -similarity : pandas.DataFrame or None
+        -var_data : pandas.DataFrame or None
+        -subclusters_ : instance of Clustering class or None
+        -cells_calc : pandas.Series or None
+        -gene_calc : pandas.Series or None
+        -composition_data : pandas.DataFrame or None
+        """
 
         self.objects = objects
+        """ Stores the input data objects."""
+
         self.input_data = None
+        """Raw input data for clustering or integration analysis."""
+
         self.input_metadata = None
+        """Metadata associated with the input data."""
+
         self.normalized_data = None
+        """Normalized version of the input data."""
+
         self.agg_metadata = None
+        '''Aggregated metadata for all sets in object related to "agg_normalized_data"'''
+
         self.agg_normalized_data = None
+        """Aggregated and normalized data across multiple sets."""
+
         self.similarity = None
+        """Similarity data between cells across all samples. and sets"""
+
         self.var_data = None
+        """DEG analysis results summarizing variance across all samples in the object."""
+
         self.subclusters_ = None
+        """Placeholder for information about subclusters analysis; if computed."""
+
         self.cells_calc = None
+        """Number of cells detected per sample (grouped by lineage, e.g., cluster or name), reflecting data composition."""
+
         self.gene_calc = None
+        """Number of genes detected per sample (cell), reflecting the sequencing depth."""
+
         self.composition_data = None
+        """Data describing composition of cells across clusters or sets."""
 
     @classmethod
     def project_dir(cls, path_to_directory, project_list):
@@ -1053,6 +1215,7 @@ class COMPsc(Clustering):
         ----------
         path_to_directory : str
             Path containing project subfolders.
+
         project_list : list[str]
             List of filenames (folder names) to include in the returned object map.
 
@@ -1068,8 +1231,8 @@ class COMPsc(Clustering):
 
         Notes
         -----
-        - Function attempts to match entries in `project_list` to directory
-          names and constructs a simplified object key from the folder name.
+        Function attempts to match entries in `project_list` to directory
+        names and constructs a simplified object key from the folder name.
         """
         try:
             objects = {}
@@ -1108,6 +1271,7 @@ class COMPsc(Clustering):
         ----------
         name : str
             Base filename (without extension) to use when saving.
+
         path : str, default os.getcwd()
             Directory in which to save the project file.
 
@@ -1171,24 +1335,26 @@ class COMPsc(Clustering):
         reg : str | None
             Substring to search for in column/cell names; matching columns will be removed.
             If not None, `full` must be None.
+
         full : str | None
             Full name to search for in column/cell names; matching columns will be removed.
             If not None, `reg` must be None.
+
         name_slot : str, default 'cell_names'
             Column in metadata to use as sample names.
+
         inc_set : bool, default False
             If True, column names are interpreted as 'cell_name # set' when matching.
 
-
         Update
         ------------
-            Mutates `self.input_data`, `self.normalized_data`, `self.input_metadata`,
-            `self.agg_normalized_data`, and `self.agg_metadata` (if they exist),
-            removing columns/rows that match `reg`.
+        Mutates `self.input_data`, `self.normalized_data`, `self.input_metadata`,
+        `self.agg_normalized_data`, and `self.agg_metadata` (if they exist),
+        removing columns/rows that match `reg`.
 
         Raises
         ------
-            Raises ValueError if nothing matches the reduction mask.
+        Raises ValueError if nothing matches the reduction mask.
         """
 
         if reg is None and full is None:
@@ -1498,16 +1664,15 @@ class COMPsc(Clustering):
         features_list : list
             List of features to search for in index/gene names; matching entries will be removed.
 
-
         Update
         ------------
-            Mutates `self.input_data`, `self.normalized_data`, `self.input_metadata`,
-            `self.agg_normalized_data`, and `self.agg_metadata` (if they exist),
-            removing columns/rows that match `reg`.
+        Mutates `self.input_data`, `self.normalized_data`, `self.input_metadata`,
+        `self.agg_normalized_data`, and `self.agg_metadata` (if they exist),
+        removing columns/rows that match `reg`.
 
         Raises
         ------
-            Prints a message listing features that are not found in the data.
+        Prints a message listing features that are not found in the data.
         """
 
         if None is not self.input_data:
@@ -1603,10 +1768,13 @@ class COMPsc(Clustering):
         ----------
         names : list, str, or None
             Names of samples to include. If None, all samples are considered.
+
         features : list, str, or None
             Names of features to include. If None, all features are considered.
+
         name_slot : str
             Column in metadata to use as sample names.
+
         inc_metadata : bool
             If True return tuple (data, metadata)
 
@@ -1688,14 +1856,13 @@ class COMPsc(Clustering):
         The method computes a binary (presence/absence) per cell and sums across
         features to produce `self.gene_calc`.
 
-
         Update
         ------
-            Sets `self.gene_calc` as a pandas.Series.
+        Sets `self.gene_calc` as a pandas.Series.
 
         Side Effects
         ------------
-        - Uses `self.input_data` when available, otherwise `self.normalized_data`.
+        Uses `self.input_data` when available, otherwise `self.normalized_data`.
         """
 
         if self.input_data is not None:
@@ -1734,7 +1901,7 @@ class COMPsc(Clustering):
 
         Notes
         -----
-        - Requires `self.gene_calc` to be computed prior to calling.
+        Requires `self.gene_calc` to be computed prior to calling.
         """
 
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -1773,18 +1940,18 @@ class COMPsc(Clustering):
         ----------
         min_n : int or None
             Minimum number of detected genes required to keep a cell.
+
         max_n : int or None
             Maximum number of detected genes allowed to keep a cell.
 
-
         Update
         -------
-            Filters `self.input_data`, `self.normalized_data`, `self.input_metadata`
-            (and calls `average()` if `self.agg_normalized_data` exists).
+        Filters `self.input_data`, `self.normalized_data`, `self.input_metadata`
+        (and calls `average()` if `self.agg_normalized_data` exists).
 
         Side Effects
         ------------
-           Raises ValueError if both bounds are None or if filtering removes all cells.
+        Raises ValueError if both bounds are None or if filtering removes all cells.
         """
 
         if min_n is not None and max_n is not None:
@@ -1841,11 +2008,9 @@ class COMPsc(Clustering):
         name_slot : str, default 'cell_names'
             Column in metadata to use as sample names.
 
-
         Update
         ------
-            Sets `self.cells_calc` as a pd.DataFrame.
-
+        Sets `self.cells_calc` as a pd.DataFrame.
         """
 
         ls = list(self.input_metadata[name_slot])
@@ -1868,7 +2033,6 @@ class COMPsc(Clustering):
         name_slot : str, default 'cell_names'
             Column in metadata to use as sample names.
 
-
         Returns
         -------
         matplotlib.figure.Figure
@@ -1876,7 +2040,7 @@ class COMPsc(Clustering):
 
         Notes
         -----
-        - Requires `self.cells_calc` to be computed prior to calling.
+        Requires `self.cells_calc` to be computed prior to calling.
         """
 
         if name_slot != "cell_names":
@@ -1930,15 +2094,15 @@ class COMPsc(Clustering):
         ----------
         min_n : int or None
             Minimum number of detected genes required to keep a cell.
+
         name_slot : str, default 'cell_names'
             Column in metadata to use as sample names.
 
 
         Update
         -------
-            Filters `self.input_data`, `self.normalized_data`, `self.input_metadata`
-            (and calls `average()` if `self.agg_normalized_data` exists).
-
+        Filters `self.input_data`, `self.normalized_data`, `self.input_metadata`
+        (and calls `average()` if `self.agg_normalized_data` exists).
         """
 
         if name_slot != "cell_names":
@@ -2037,7 +2201,6 @@ class COMPsc(Clustering):
             If False, store them in `self.input_data` and normalization
             is needed using normalize_data() method.
 
-
         Side Effects
         ------------
         - Reads each project using `load_sparse(...)` (expects matrix.mtx, genes.tsv, barcodes.tsv).
@@ -2080,12 +2243,13 @@ class COMPsc(Clustering):
         mapping : dict
             Dictionary with keys 'old_name' and 'new_name', each mapping to a list
             of equal length describing replacements.
+
         slot : str, default 'cell_names'
             Metadata column to operate on.
 
         Update
         -------
-            Updates `self.input_metadata[slot]` in-place with renamed values.
+        Updates `self.input_metadata[slot]` in-place with renamed values.
 
         Raises
         ------
@@ -2128,10 +2292,9 @@ class COMPsc(Clustering):
         mapping : dict
             Mapping with keys 'old_name' and 'new_name' (lists of equal length).
 
-
         Update
         -------
-            Updates `self.subclusters_.subclusters` with renamed labels.
+        Updates `self.subclusters_.subclusters` with renamed labels.
 
         Raises
         ------
@@ -2177,11 +2340,12 @@ class COMPsc(Clustering):
         ----------
         path_to_save : str, default current working directory
             Directory where files will be written.
+
         name_slot : str, default 'cell_names'
             Metadata column providing cell names for barcodes.tsv.
+
         data_slot : str, default 'normalized'
             Either 'normalized' (uses self.normalized_data) or 'count' (uses self.input_data).
-
 
         Raises
         ------
@@ -2230,6 +2394,7 @@ class COMPsc(Clustering):
         ----------
         normalize_factor : int, default 100000
             Scaling factor used after dividing by column sums.
+
         log_transform : bool, default True
             If True, apply log2(x+1) transformation to normalized values.
 
@@ -2241,7 +2406,6 @@ class COMPsc(Clustering):
         ------
         ValueError
             If `self.input_data` is missing (cannot normalize).
-
         """
         if self.input_data is None:
             raise ValueError("Input data is missing, cannot normalize.")
@@ -2272,12 +2436,16 @@ class COMPsc(Clustering):
         ----------
         cells : list, 'All', dict, or None
             Defines the target cells or groups for comparison (several modes supported).
+
         sets : 'All', dict, or None
             Alternative grouping mode (operate on `self.input_metadata['sets']`).
+
         min_exp : float, default 0.01
             Minimum expression threshold used when filtering features.
+
         min_pct : float, default 0.1
             Minimum proportion of expressing cells in the target group required to test a feature.
+
         n_proc : int, default 10
             Number of parallel jobs to use.
 
@@ -2294,7 +2462,7 @@ class COMPsc(Clustering):
 
         Notes
         -----
-        - Multiple modes supported: single-list entities, 'All', pairwise dicts, etc.
+        Multiple modes supported: single-list entities, 'All', pairwise dicts, etc.
         """
 
         def stat_calc(choose, feature_name):
@@ -2555,21 +2723,23 @@ class COMPsc(Clustering):
         ----------
         min_exp : float, default 0
             Minimum expression threshold passed to `statistic`.
+
         min_pct : float, default 0.25
             Minimum percent expressed in target group.
+
         n_proc : int, default 10
             Parallel jobs.
+
         force : bool, default False
             If True, recompute even if `self.var_data` is present.
 
-
         Update
         -------
-            Sets `self.var_data` to the result of `self.statistic(...)`.
+        Sets `self.var_data` to the result of `self.statistic(...)`.
 
         Raise
         ------
-            ValueError if already computed and `force` is False.
+        ValueError if already computed and `force` is False.
         """
 
         if None is self.var_data or force:
@@ -2603,21 +2773,26 @@ class COMPsc(Clustering):
         features_list : list or None
             If provided, use this list of features. If None, features are selected
             from `self.var_data` (adj_pval <= p_val, positive logFC) picking `top_n` per group.
+
         name_slot : str, default 'cell_names'
             Metadata column used for naming.
+
         p_val : float, default 0.05
             Adjusted p-value cutoff when selecting features automatically.
+
         top_n : int, default 25
             Number of top features per valid group to keep if `features_list` is None.
+
         adj_mean : bool, default True
             If True, adjust cell values toward group means using `beta`.
+
         beta : float, default 0.2
             Adjustment strength toward group mean.
 
         Update
         ------
-            Sets `self.clustering_data` and `self.clustering_metadata` to the selected subset,
-            ready for PCA/UMAP/clustering.
+        Sets `self.clustering_data` and `self.clustering_metadata` to the selected subset,
+        ready for PCA/UMAP/clustering.
         """
 
         if features_list is None or len(features_list) == 0:
@@ -2660,8 +2835,8 @@ class COMPsc(Clustering):
 
         Update
         ------
-            Sets `self.agg_normalized_data` (features x aggregated samples) and
-            `self.agg_metadata` (DataFrame with 'cell_names' and 'sets').
+        Sets `self.agg_normalized_data` (features x aggregated samples) and
+        `self.agg_metadata` (DataFrame with 'cell_names' and 'sets').
         """
 
         wide_data = self.normalized_data
@@ -2693,16 +2868,17 @@ class COMPsc(Clustering):
         ----------
         method : str, default 'pearson'
             Correlation method to use (passed to pandas.DataFrame.corr()).
+
         p_val : float, default 0.05
             Adjusted p-value cutoff used to select marker features from `self.var_data`.
+
         top_n : int, default 25
             Number of top features per valid group to include.
 
-
         Update
         -------
-            Computes a combined table with per-pair correlation and euclidean distance
-            and stores it in `self.similarity`.
+        Computes a combined table with per-pair correlation and euclidean distance
+        and stores it in `self.similarity`.
         """
 
         if None is self.var_data:
@@ -2772,12 +2948,16 @@ class COMPsc(Clustering):
         ----------
         split_sets : bool, default True
             If True and set information is present, split plotting area roughly into two halves to visualize cross-set pairs.
+
         set_info : bool, default True
             If True, keep the ' # set' annotation in labels; otherwise strip it.
+
         cmap : str, default 'seismic'
             Color map for correlation (hue).
+
         width : int, default 12
             Figure width.
+
         height : int, default 10
             Figure height.
 
@@ -2792,7 +2972,7 @@ class COMPsc(Clustering):
 
         Notes
         -----
-        - The function filters pairs by z-scored euclidean distance > 0 to focus on closer pairs.
+        The function filters pairs by z-scored euclidean distance > 0 to focus on closer pairs.
         """
 
         if None is self.similarity:
@@ -2886,17 +3066,24 @@ class COMPsc(Clustering):
         ----------
         set_info : bool, default True
             If True, retain set information in labels.
+
         bandwidth : float, default 1
             Bandwidth used by MeanShift for clustering polygons.
+
         point_size : float, default 100
             Size of scatter points.
+
         legend_split : int, default 2
             Number of columns in legend.
+
         n_neighbors, min_dist, spread, set_op_mix_ratio, local_connectivity, repulsion_strength, negative_sample_rate : parameters passed to UMAP.
+
         threshold : float, default 0.1
             Minimum text distance for label adjustment to avoid overlap.
+
         width : int, default 12
             Figure width.
+
         height : int, default 10
             Figure height.
 
@@ -2911,9 +3098,9 @@ class COMPsc(Clustering):
 
         Notes
         -----
-        - Builds a precomputed distance matrix combining correlation and euclidean distance,
-          runs UMAP with metric='precomputed', then overlays cluster hulls (MeanShift + convex hull)
-          and arrows to indicate nearest neighbors (minimal combined distance).
+        Builds a precomputed distance matrix combining correlation and euclidean distance,
+        runs UMAP with metric='precomputed', then overlays cluster hulls (MeanShift + convex hull)
+        and arrows to indicate nearest neighbors (minimal combined distance).
         """
 
         if None is self.similarity:
@@ -3120,13 +3307,14 @@ class COMPsc(Clustering):
         ----------
         features : list
             Features to include for subcluster analysis.
+
         cluster : str
             Parent cluster name (used to select matching cells).
 
         Update
         ------
-            Initializes `self.subclusters_` as a new `Clustering` instance containing the
-            reduced data for the given cluster and stores `current_features` and `current_cluster`.
+        Initializes `self.subclusters_` as a new `Clustering` instance containing the
+        reduced data for the given cluster and stores `current_features` and `current_cluster`.
         """
 
         dat = self.normalized_data
@@ -3161,17 +3349,19 @@ class COMPsc(Clustering):
         ----------
         umap_num : int, default 2
             Number of UMAP dimensions to compute.
+
         eps : float, default 0.5
             DBSCAN eps parameter.
+
         min_samples : int, default 10
             DBSCAN min_samples parameter.
+
         n_neighbors, min_dist, spread, set_op_mix_ratio, local_connectivity, repulsion_strength, negative_sample_rate, width, height :
             Additional parameters passed to UMAP / plotting / MeanShift as appropriate.
 
-
         Update
         -------
-            Stores cluster labels in `self.subclusters_.subclusters`.
+        Stores cluster labels in `self.subclusters_.subclusters`.
 
         Raises
         ------
@@ -3233,22 +3423,31 @@ class COMPsc(Clustering):
         ----------
         colors : str, default 'viridis'
             Colormap name passed to `features_scatter`.
+
         hclust : str or None
             Hierarchical clustering linkage to order rows/columns.
+
         scale: bool, default False
             If True, expression data will be scaled (0–1) across the rows (features).
+
         img_width, img_high : float
             Figure size.
+
         label_size : int
             Font size for labels.
+
         size_scale : int
             Bubble size scaling.
+
         y_lab : str
             X axis label.
+
         legend_lab : str
             Colorbar label.
+
         bbox_to_anchor_scale : int, default=25
             Vertical scale (percentage) for positioning the colorbar.
+
         bbox_to_anchor_perc : tuple, default=(0.91, 0.63)
             Anchor position for the size legend (percent bubble legend).
 
@@ -3260,7 +3459,6 @@ class COMPsc(Clustering):
         ------
         RuntimeError
             If subcluster preparation/definition has not been run.
-
         """
 
         if self.subclusters_ is None or self.subclusters_.subclusters is None:
@@ -3328,38 +3526,52 @@ class COMPsc(Clustering):
         ----------
         top_n : int, default 3
             Number of top features per subcluster to show.
+
         min_exp : float, default 0
             Minimum expression threshold passed to `statistic`.
+
         min_pct : float, default 0.25
             Minimum percent expressed in target group.
+
         p_val: float, default 0.05
             Maximum p-value for visualizing features.
+
         n_proc : int, default 10
             Parallel jobs used for DEG calculation.
+
         scale: bool, default False
             If True, expression_data will be scaled (0–1) across the rows (features).
+
         colors : str, default='viridis'
             Colormap for expression values.
+
         hclust : str or None, default='complete'
             Linkage method for hierarchical clustering. If None, no clustering
             is performed.
+
         img_width : int or float, default=8
             Width of the plot in inches.
+
         img_high : int or float, default=5
             Height of the plot in inches.
+
         label_size : int, default=10
             Font size for axis labels and ticks.
+
         size_scale : int or float, default=100
             Scaling factor for bubble sizes.
+
         y_lab : str, default='Genes'
             Label for the x-axis.
+
         legend_lab : str, default='normalized'
             Label for the colorbar legend.
+
         bbox_to_anchor_scale : int, default=25
             Vertical scale (percentage) for positioning the colorbar.
+
         bbox_to_anchor_perc : tuple, default=(0.91, 0.63)
             Anchor position for the size legend (percent bubble legend).
-
 
         Returns
         -------
@@ -3372,8 +3584,8 @@ class COMPsc(Clustering):
 
         Notes
         -----
-        - Internally calls `calc_DEG` (or equivalent) to obtain statistics, filters
-          by p-value and effect-size, selects top features per valid group and plots them.
+        Internally calls `calc_DEG` (or equivalent) to obtain statistics, filters
+        by p-value and effect-size, selects top features per valid group and plots them.
         """
 
         if self.subclusters_ is None or self.subclusters_.subclusters is None:
@@ -3443,11 +3655,11 @@ class COMPsc(Clustering):
         with the expanded names that include subcluster suffixes (via `add_subnames`),
         then clears `self.subclusters_`.
 
-
         Update
         ------
-            Modifies `self.input_metadata['cell_names']`.
-            Resets `self.subclusters_` to None.
+        Modifies `self.input_metadata['cell_names']`.
+
+        Resets `self.subclusters_` to None.
 
         Raises
         ------
@@ -3501,33 +3713,47 @@ class COMPsc(Clustering):
         ----------
         names : list, str, or None
             Names of samples to include. If None, all samples are considered.
+
         features : list, str, or None
             Names of features to include. If None, all features are considered.
+
         name_slot : str
             Column in metadata to use as sample names.
+
         scale: bool, default False
             If True, expression_data will be scaled (0–1) across the rows (features).
+
         colors : str, default='viridis'
             Colormap for expression values.
+
         hclust : str or None, default='complete'
             Linkage method for hierarchical clustering. If None, no clustering
             is performed.
+
         img_width : int or float, default=8
             Width of the plot in inches.
+
         img_high : int or float, default=5
             Height of the plot in inches.
+
         label_size : int, default=10
             Font size for axis labels and ticks.
+
         size_scale : int or float, default=100
             Scaling factor for bubble sizes.
+
         y_lab : str, default='Genes'
             Label for the x-axis.
+
         legend_lab : str, default='log(CPM + 1)'
             Label for the colorbar legend.
+
         bbox_to_anchor_scale : int, default=25
             Vertical scale (percentage) for positioning the colorbar.
+
         bbox_to_anchor_perc : tuple, default=(0.91, 0.63)
             Anchor position for the size legend (percent bubble legend).
+
         bbox_to_anchor_group : tuple, default=(1.01, 0.4)
             Anchor position for the group legend.
 
@@ -3536,11 +3762,9 @@ class COMPsc(Clustering):
         matplotlib.figure.Figure
             The generated scatter plot figure.
 
-
         Notes
         -----
-        - Colors represent expression values normalized to the colormap.
-
+        Colors represent expression values normalized to the colormap.
         """
 
         prtd, met = self.get_partial_data(
@@ -3611,20 +3835,21 @@ class COMPsc(Clustering):
         features_count : list or None
             List of features (part or full names) to be counted.
             If None, all unique elements from the specified `name_slot` metadata field are used.
+
         name_slot : str, default 'cell_names'
             Metadata field containing sample identifiers or labels.
+
         set_sep : bool, default True
             If True and multiple sets are present in metadata, compute composition
             separately for each set.
 
         Update
         -------
-            Stores results in `self.composition_data` as a pandas DataFrame with:
-            - 'name': feature name
-            - 'n': number of occurrences
-            - 'pct': percentage of occurrences
-            - 'set' (if applicable): dataset identifier
-
+        Stores results in `self.composition_data` as a pandas DataFrame with:
+        - 'name': feature name
+        - 'n': number of occurrences
+        - 'pct': percentage of occurrences
+        - 'set' (if applicable): dataset identifier
         """
 
         validated_list = list(self.input_metadata[name_slot])
@@ -3701,16 +3926,22 @@ class COMPsc(Clustering):
         ----------
         width : int, default 6
             Width of the figure.
+
         height : int, default 6
             Height of the figure (applied per set if multiple sets are plotted).
+
         font_size : int, default 15
             Font size for labels and annotations.
+
         cmap : str, default 'tab20'
             Colormap used for pie slices.
+
         legend_split_col : int, default 1
             Number of columns in the legend.
+
         offset_labels : float or int, default 0.5
             Spacing offset for label placement relative to pie slices.
+
         legend_bbox : tuple, default (1.15, 0.95)
             Bounding box anchor position for the legend.
 
@@ -3886,17 +4117,21 @@ class COMPsc(Clustering):
         ----------
         cmap : str, default 'tab20b'
             Colormap used for stacked bars.
+
         width : int, default 2
             Width of each subplot (per set).
+
         height : int, default 6
             Height of the figure.
+
         font_size : int, default 15
             Font size for labels and annotations.
+
         legend_split_col : int, default 1
             Number of columns in the legend.
+
         legend_bbox : tuple, default (1.3, 1)
             Bounding box anchor position for the legend.
-
 
         Returns
         -------
@@ -4075,19 +4310,26 @@ class COMPsc(Clustering):
         ----------
         cell_x : str
             Name of the first cell (X-axis).
+
         cell_y : str
             Name of the second cell (Y-axis).
+
         set_x : str or None
             Dataset identifier corresponding to `cell_x`. If None, cell is selected only by name.
+
         set_y : str or None
             Dataset identifier corresponding to `cell_y`. If None, cell is selected only by name.
+
         threshold : int or float, default 10
             Threshold for detecting outliers. Points deviating from the mean or diagonal by more
             than this value are annotated.
+
         image_width : int, default 12
             Width of the regression plot (in inches).
+
         image_high : int, default 7
             Height of the regression plot (in inches).
+
         color : str, default 'black'
             Color of the regression scatter points and line.
 

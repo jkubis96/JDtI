@@ -32,6 +32,7 @@ def load_sparse(path: str, name: str):
     ----------
     path : str
         Path to the directory containing the matrix and annotation files.
+
     name : str
         Label or dataset identifier to be assigned to all cells in the metadata.
 
@@ -91,18 +92,25 @@ def volcano_plot(
 
     p_adj : bool, default=True
         If True, use adjusted p-values. If False, use raw p-values.
+
     top : int, default=25
         Number of top significant genes to highlight on the plot.
+
     p_val : float | int, default=0.05
         Significance threshold for p-values (or adjusted p-values).
+
     lfc : float | int, default=0.25
         Threshold for absolute log fold change.
+
     standard_scale : bool, default=False
         If True, use standardized p-values for visualization instead of -log10(p-values).
+
     rescale_adj : bool, default=True
         If True, rescale p-values to avoid long breaks caused by outlier values.
+
     image_width : int, default=12
         Width of the generated plot in inches.
+
     image_high : int, default=12
         Height of the generated plot in inches.
 
@@ -446,6 +454,7 @@ def find_features(data: pd.DataFrame, features: list):
     ----------
     data : pandas.DataFrame
         DataFrame with features in the index (rows).
+
     features : list
         List of feature names to search for.
 
@@ -486,6 +495,7 @@ def find_names(data: pd.DataFrame, names: list):
     ----------
     data : pandas.DataFrame
         DataFrame with names in the columns.
+
     names : list
         List of names to search for.
 
@@ -521,6 +531,7 @@ def reduce_data(data: pd.DataFrame, features: list = [], names: list = []):
     ----------
     data : pandas.DataFrame
         Input DataFrame with features as rows and names as columns.
+
     features : list
         List of features to include (rows). Default is an empty list.
         If empty, all rows are returned.
@@ -638,37 +649,52 @@ def features_scatter(
     ----------
     expression_data : pandas.DataFrame
         Expression values (mean) with features as rows and samples as columns derived from average() function.
+
     occurence_data : pandas.DataFrame or None
         DataFrame with occurrence/frequency values (same shape as `expression_data`) derived from occurrence() function.
         If None, bubble sizes are based on expression values.
+
     scale: bool, default False
         If True, expression_data will be scaled (0–1) across the rows (features).
+
     features : list or None
         List of features (rows) to display. If None, all features are used.
+
     metadata_list : list or None, optional
         Metadata grouping for samples (same length as number of columns).
         Used to add group colors and separators in the plot.
+
     colors : str, default='viridis'
         Colormap for expression values.
+
     hclust : str or None, default='complete'
         Linkage method for hierarchical clustering. If None, no clustering
         is performed.
+
     img_width : int or float, default=8
         Width of the plot in inches.
+
     img_high : int or float, default=5
         Height of the plot in inches.
+
     label_size : int, default=10
         Font size for axis labels and ticks.
+
     size_scale : int or float, default=100
         Scaling factor for bubble sizes.
+
     y_lab : str, default='Genes'
         Label for the x-axis.
+
     legend_lab : str, default='log(CPM + 1)'
         Label for the colorbar legend.
+
     bbox_to_anchor_scale : int, default=25
         Vertical scale (percentage) for positioning the colorbar.
+
     bbox_to_anchor_perc : tuple, default=(0.91, 0.63)
         Anchor position for the size legend (percent bubble legend).
+
     bbox_to_anchor_group : tuple, default=(1.01, 0.4)
         Anchor position for the group legend.
 
@@ -924,25 +950,31 @@ def calc_DEG(
     data : pandas.DataFrame
         Expression matrix with features (e.g., genes) as rows and samples/cells
         as columns.
+
     metadata_list : list or None, optional
         Metadata grouping corresponding to the columns in `data`. Required for
         comparisons based on sets. Default is None.
+
     entities : list, str, dict, or None, optional
         Defines the comparison strategy:
         - list of sample names → compare selected cells to the rest.
         - 'All' → compare each sample/cell to all others.
         - dict → user-defined groups for pairwise comparison.
         - None → must be combined with `sets`.
+
     sets : str, dict, or None, optional
         Defines group-based comparisons:
         - 'All' → compare each set/group to all others.
         - dict with two groups → perform pairwise set comparison.
         - None → must be combined with `entities`.
+
     min_exp : float | int, default=0
         Minimum expression threshold for filtering features.
+
     min_pct : float | int, default=0.1
         Minimum proportion of samples within the target group that must express
         a feature for it to be tested.
+
     n_proc : int, default=10
         Number of parallel processes to use for statistical testing.
 
@@ -1313,7 +1345,6 @@ def average(data):
     pandas.DataFrame
         DataFrame with the same rows as the input but with unique columns,
         where duplicate columns have been replaced by their mean values.
-
     """
 
     wide_data = data
@@ -1342,7 +1373,6 @@ def occurrence(data):
         DataFrame with the same rows as the input, where each value represents
         the proportion of samples in which the feature is present (non-zero).
         Columns with identical names are aggregated.
-
     """
 
     binary_data = (data > 0).astype(int)
@@ -1370,9 +1400,11 @@ def add_subnames(names_list: list, parent_name: str, new_clusters: list):
     ----------
     names_list : list
         Original list of names (e.g., column names or cluster labels).
+
     parent_name : str
         Name of the parent cluster to which sub-cluster names will be added.
         Must exist in `names_list`.
+
     new_clusters : list
         List of sub-cluster names. Its length must match the number of times
         `parent_name` occurs in `names_list`.
@@ -1432,14 +1464,17 @@ def development_clust(
     ----------
     data : pandas.DataFrame
         Input DataFrame with features as rows and samples/columns to be clustered.
+
     method : str
         Method for hierarchical clustering. Options include:
        - 'ward' : minimizes the variance of clusters being merged.
        - 'single' : uses the minimum of the distances between all observations of the two sets.
        - 'complete' : uses the maximum of the distances between all observations of the two sets.
        - 'average' : uses the average of the distances between all observations of the two sets.
+
     img_width : int or float, default=5
         Width of the resulting figure in inches.
+
     img_high : int or float, default=5
         Height of the resulting figure in inches.
 
@@ -1469,9 +1504,11 @@ def adjust_cells_to_group_mean(data, data_avg, beta=0.2):
     ----------
     data : pandas.DataFrame
         Original data with features as rows and cells/samples as columns.
+
     data_avg : pandas.DataFrame
         DataFrame of group averages (centroids) with features as rows and
         group names as columns.
+
     beta : float, default=0.2
         Weight for adjustment towards the group mean. 0 = no adjustment,
         1 = fully replaced by the group mean.
