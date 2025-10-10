@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from scdiff import COMPsc, volcano_plot
+from jdti import COMPsc, volcano_plot
 
 # integration tests
 

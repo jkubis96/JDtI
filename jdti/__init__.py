@@ -14,8 +14,8 @@ __pattern__ = r"""
 
 print(__pattern__)
 
-from .scdiff import *
+from .jdti import *
 
 print("")
-print("Welcome in scDiff v.1.0.0 library")
+print("Welcome in JDtI v.1.0.0 library")
 print("")

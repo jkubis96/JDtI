@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from scdiff import (
+from jdti import (
     adjust_cells_to_group_mean,
     average,
     calc_DEG,

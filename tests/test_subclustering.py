@@ -3,7 +3,7 @@ import os
 import matplotlib as mpl
 import pytest
 
-from scdiff.scdiff import Clustering, COMPsc
+from jdti import Clustering, COMPsc
 
 
 @pytest.fixture(scope="session")

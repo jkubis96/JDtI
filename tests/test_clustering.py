@@ -2,7 +2,7 @@ import matplotlib as mpl
 import pandas as pd
 import pytest
 
-from scdiff.scdiff import Clustering, load_sparse
+from jdti import Clustering, load_sparse
 
 
 @pytest.fixture(scope="session")
