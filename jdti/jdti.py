@@ -725,7 +725,7 @@ class Clustering:
         else:
             umap_df["dataset"] = "default"
 
-        umap_df.loc[:,"tmp_nam"] = umap_df["names"] + umap_df["dataset"]
+        umap_df.loc[:, "tmp_nam"] = umap_df["names"] + umap_df["dataset"]
 
         umap_df.loc[:, "count"] = umap_df["tmp_nam"].map(
             umap_df["tmp_nam"].value_counts()
@@ -881,7 +881,7 @@ class Clustering:
         if not any(blist):
             raise ValueError("Imputed feature_name is not included in the data")
 
-        umap_df.loc[:,"feature"] = (
+        umap_df.loc[:, "feature"] = (
             features_data.loc[blist, :]
             .apply(lambda row: row.tolist(), axis=1)
             .values[0]
