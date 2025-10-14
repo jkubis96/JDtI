@@ -2,9 +2,7 @@ import math
 import os
 import pickle
 import re
-import warnings
 
-# from harmony import harmonize
 import harmonypy as harmonize
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,7 +26,10 @@ from tqdm import tqdm
 
 from .utils import *
 
-warnings.filterwarnings("ignore", category=RuntimeWarning)
+# import warnings
+
+
+# warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 class Clustering:
@@ -712,21 +713,23 @@ class Clustering:
         """
 
         umap_df = self.umap.iloc[:, 0:2]
-        umap_df["names"] = self.clustering_metadata[names_slot]
+        umap_df.loc[:, "names"] = self.clustering_metadata[names_slot]
 
         if set_sep:
 
             if "sets" in self.clustering_metadata.columns:
-                umap_df["dataset"] = self.clustering_metadata["sets"]
+                umap_df.loc[:, "dataset"] = self.clustering_metadata["sets"]
             else:
                 umap_df["dataset"] = "default"
 
         else:
             umap_df["dataset"] = "default"
 
-        umap_df["tmp_nam"] = umap_df["names"] + umap_df["dataset"]
+        umap_df.loc["tmp_nam"] = umap_df["names"] + umap_df["dataset"]
 
-        umap_df["count"] = umap_df["tmp_nam"].map(umap_df["tmp_nam"].value_counts())
+        umap_df.loc[:, "count"] = umap_df["tmp_nam"].map(
+            umap_df["tmp_nam"].value_counts()
+        )
 
         numeric_df = (
             pd.DataFrame(umap_df[["count", "tmp_nam", "names"]].copy())
@@ -1396,7 +1399,7 @@ class COMPsc(Clustering):
 
                 self.input_data = self.input_data.loc[:, mask]
 
-            if None is not self.normalized_data:
+            if self.normalized_data is not None:
 
                 if inc_set:
 
@@ -1419,7 +1422,7 @@ class COMPsc(Clustering):
 
                 self.normalized_data = self.normalized_data.loc[:, mask]
 
-            if None is not self.input_metadata:
+            if self.input_metadata is not None:
 
                 if inc_set:
 
@@ -1448,7 +1451,7 @@ class COMPsc(Clustering):
                     columns=["drop"], errors="ignore"
                 )
 
-            if None is not self.agg_normalized_data:
+            if self.agg_normalized_data is not None:
 
                 if inc_set:
 
@@ -1470,7 +1473,7 @@ class COMPsc(Clustering):
 
                 self.agg_normalized_data = self.agg_normalized_data.loc[:, mask]
 
-            if None is not self.agg_metadata:
+            if self.agg_metadata is not None:
 
                 if inc_set:
 
@@ -1527,7 +1530,7 @@ class COMPsc(Clustering):
 
                 self.input_data = self.input_data.loc[:, mask]
 
-            if None is not self.normalized_data:
+            if self.normalized_data is not None:
 
                 if inc_set:
 
@@ -1557,7 +1560,7 @@ class COMPsc(Clustering):
 
                 self.normalized_data = self.normalized_data.loc[:, mask]
 
-            if None is not self.input_metadata:
+            if self.input_metadata is not None:
 
                 if inc_set:
 
@@ -1593,7 +1596,7 @@ class COMPsc(Clustering):
                     columns=["drop"], errors="ignore"
                 )
 
-            if None is not self.agg_normalized_data:
+            if self.agg_normalized_data is not None:
 
                 if inc_set:
 
@@ -1622,7 +1625,7 @@ class COMPsc(Clustering):
 
                 self.agg_normalized_data = self.agg_normalized_data.loc[:, mask]
 
-            if None is not self.agg_metadata:
+            if self.agg_metadata is not None:
 
                 if inc_set:
 
@@ -1678,7 +1681,7 @@ class COMPsc(Clustering):
         Prints a message listing features that are not found in the data.
         """
 
-        if None is not self.input_data:
+        if self.input_data is not None:
 
             res = find_features(self.input_data, features=features_list)
 
@@ -1691,7 +1694,7 @@ class COMPsc(Clustering):
 
             self.input_data = self.input_data.loc[mask, :]
 
-        if None is not self.normalized_data:
+        if self.normalized_data is not None:
 
             res = find_features(self.normalized_data, features=features_list)
 
@@ -1704,7 +1707,7 @@ class COMPsc(Clustering):
 
             self.normalized_data = self.normalized_data.loc[mask, :]
 
-        if None is not self.agg_normalized_data:
+        if self.agg_normalized_data is not None:
 
             res = find_features(self.agg_normalized_data, features=features_list)
 
@@ -1878,7 +1881,7 @@ class COMPsc(Clustering):
 
             self.gene_calc = sum_data
 
-        elif None is not self.normalized_data:
+        elif self.normalized_data is not None:
 
             bin_col = self.normalized_data.copy()
 
@@ -1973,14 +1976,14 @@ class COMPsc(Clustering):
 
             self.input_data = self.input_data.loc[:, mask.values]
 
-        if None is not self.normalized_data:
+        if self.normalized_data is not None:
 
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing to reduce")
 
             self.normalized_data = self.normalized_data.loc[:, mask.values]
 
-        if None is not self.input_metadata:
+        if self.input_metadata is not None:
 
             if len([y for y in mask if y is False]) == 0:
                 raise ValueError("Nothing to reduce")
@@ -1993,7 +1996,7 @@ class COMPsc(Clustering):
                 columns=["drop"], errors="ignore"
             )
 
-        if None is not self.agg_normalized_data:
+        if self.agg_normalized_data is not None:
             self.average()
 
         self.gene_calculation()
@@ -2128,7 +2131,7 @@ class COMPsc(Clustering):
 
                     self.input_data = self.input_data.loc[:, mask]
 
-            if None is not self.normalized_data:
+            if self.normalized_data is not None:
 
                 self.normalized_data.columns = self.input_metadata[name_slot]
 
@@ -2140,7 +2143,7 @@ class COMPsc(Clustering):
 
                     self.normalized_data = self.normalized_data.loc[:, mask]
 
-            if None is not self.input_metadata:
+            if self.input_metadata is not None:
 
                 self.input_metadata["drop"] = self.input_metadata[name_slot]
 
@@ -2158,7 +2161,7 @@ class COMPsc(Clustering):
                     columns=["drop"], errors="ignore"
                 )
 
-            if None is not self.agg_normalized_data:
+            if self.agg_normalized_data is not None:
 
                 self.agg_normalized_data.columns = self.agg_metadata[name_slot]
 
@@ -2171,7 +2174,7 @@ class COMPsc(Clustering):
 
                     self.agg_normalized_data = self.agg_normalized_data.loc[:, mask]
 
-            if None is not self.agg_metadata:
+            if self.agg_metadata is not None:
 
                 self.agg_metadata["drop"] = self.agg_metadata[name_slot]
 
@@ -2512,15 +2515,15 @@ class COMPsc(Clustering):
             total_count = tmp_dat.shape[0]
 
             info = pd.DataFrame(
-                {"featrue": list(tmp_dat.columns), "pct": list(counts / total_count)}
+                {"feature": list(tmp_dat.columns), "pct": list(counts / total_count)}
             )
 
             del tmp_dat
 
-            drop_col = info["featrue"][info["pct"] <= min_pct]
+            drop_col = info["feature"][info["pct"] <= min_pct]
 
             if len(drop_col) + 1 == len(choose.columns):
-                drop_col = info["featrue"][info["pct"] == 0]
+                drop_col = info["feature"][info["pct"] == 0]
 
             del info
 
@@ -2745,7 +2748,7 @@ class COMPsc(Clustering):
         ValueError if already computed and `force` is False.
         """
 
-        if None is self.var_data or force:
+        if self.var_data is None or force:
 
             self.var_data = self.statistic(
                 cells="All", sets=None, min_exp=min_exp, min_pct=min_pct, n_proc=n_proc
@@ -2800,7 +2803,7 @@ class COMPsc(Clustering):
 
         if features_list is None or len(features_list) == 0:
 
-            if None is self.var_data:
+            if self.var_data is None:
                 raise ValueError(
                     "Lack of 'self.var_data'. Use self.calculate_difference_markers() method first."
                 )
@@ -2884,12 +2887,12 @@ class COMPsc(Clustering):
         and stores it in `self.similarity`.
         """
 
-        if None is self.var_data:
+        if self.var_data is None:
             raise ValueError(
                 "Lack of 'self.var_data'. Use self.calculate_difference_markers() method first."
             )
 
-        if None is self.agg_normalized_data:
+        if self.agg_normalized_data is None:
             self.average()
 
         metadata = self.agg_metadata
@@ -2978,7 +2981,7 @@ class COMPsc(Clustering):
         The function filters pairs by z-scored euclidean distance > 0 to focus on closer pairs.
         """
 
-        if None is self.similarity:
+        if self.similarity is None:
             raise ValueError(
                 "Similarity data is missing. Please calculate similarity using self.estimating_similarity."
             )
@@ -3108,7 +3111,7 @@ class COMPsc(Clustering):
         and arrows to indicate nearest neighbors (minimal combined distance).
         """
 
-        if None is self.similarity:
+        if self.similarity is None:
             raise ValueError(
                 "Similarity data is missing. Please calculate similarity using self.estimating_similarity."
             )
@@ -3398,7 +3401,7 @@ class COMPsc(Clustering):
             height=height,
         )
 
-        self.subclusters_.find_clusters_UMAP(
+        fig = self.subclusters_.find_clusters_UMAP(
             umap_n=umap_num,
             eps=eps,
             min_samples=min_samples,
@@ -3409,6 +3412,8 @@ class COMPsc(Clustering):
         clusters = self.subclusters_.return_clusters(clusters="umap")
 
         self.subclusters_.subclusters = [str(x) for x in list(clusters)]
+
+        return fig
 
     def subcluster_features_scatter(
         self,
@@ -4364,7 +4369,7 @@ class COMPsc(Clustering):
         >>> obj.cell_regression(cell_x="NeuronA", cell_y="NeuronB", threshold=5, color="blue")
         """
 
-        if None is self.agg_normalized_data:
+        if self.agg_normalized_data is None:
             self.average()
 
         metadata = self.agg_metadata

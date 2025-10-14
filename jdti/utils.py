@@ -139,13 +139,11 @@ def volcano_plot(
             | ((deg_df[pv] != 0) & (deg_df["log(FC)"] > 0))
         ]
 
-        tmp_p[p_val_scale] = -np.log10(deg_df[pv])
+        tmp_p[p_val_scale] = (-np.log10(deg_df[pv])).astype(float)
 
         tmp_p[p_val_scale] = scaler.fit_transform(
             tmp_p[p_val_scale].values.reshape(-1, 1)
-        )
-
-        tmp_p[p_val_scale] = tmp_p[p_val_scale]
+        ).astype(float)
 
         median_shift = abs(tmp_p[p_val_scale].diff().max()) * 25
         cur_max = tmp_p[p_val_scale].max()
@@ -154,20 +152,22 @@ def volcano_plot(
         zero_p_plus = zero_p_plus.sort_values(by="log(FC)", ascending=True).reset_index(
             drop=True
         )
-        zero_p_plus[p_val_scale] = None
+
         zero_p_plus[p_val_scale] = [
             (cur_max + (x * median_shift)) for x in range(1, len(zero_p_plus.index) + 1)
         ]
+        zero_p_plus[p_val_scale] = zero_p_plus[p_val_scale].astype(float)
 
         zero_p_minus = deg_df[(deg_df[pv] == 0) & (deg_df["log(FC)"] < 0)]
         zero_p_minus = zero_p_minus.sort_values(
             by="log(FC)", ascending=False
         ).reset_index(drop=True)
-        zero_p_minus[p_val_scale] = None
+
         zero_p_minus[p_val_scale] = [
             (cur_max + (x * median_shift))
             for x in range(1, len(zero_p_minus.index) + 1)
         ]
+        zero_p_minus[p_val_scale] = zero_p_minus[p_val_scale].astype(float)
 
         deg_df = pd.concat([zero_p_plus, tmp_p, zero_p_minus], ignore_index=True)
 
@@ -253,17 +253,17 @@ def volcano_plot(
             df = df.sort_values("doubled", ascending=False)
             df = df.reset_index(drop=True)
             for c in df.index:
-                deg_df[p_val_scale][df["doubled"][c]] = deg_df[p_val_scale][
-                    df["doubled"][c] + 1
+                deg_df.loc[df["doubled"][c], p_val_scale] = deg_df.loc[
+                    df["doubled"][c] + 1, p_val_scale
                 ] * (1 + df["ratio"][c])
 
-    deg_df["top100"][(deg_df["log(FC)"] <= 0) & (deg_df["p_val"] <= p_val)] = "red"
-    deg_df["top100"][(deg_df["log(FC)"] > 0) & (deg_df["p_val"] <= p_val)] = "blue"
-    deg_df["top100"][deg_df["p_val"] > p_val] = "lightgray"
+    deg_df.loc[(deg_df["log(FC)"] <= 0) & (deg_df["p_val"] <= p_val), "top100"] = "red"
+    deg_df.loc[(deg_df["log(FC)"] > 0) & (deg_df["p_val"] <= p_val), "top100"] = "blue"
+    deg_df.loc[deg_df["p_val"] > p_val, "top100"] = "lightgray"
 
     if lfc > 0:
-        deg_df["top100"][
-            (deg_df["log(FC)"] <= lfc) & (deg_df["log(FC)"] >= lfc * -1)
+        deg_df.loc[
+            (deg_df["log(FC)"] <= lfc) & (deg_df["log(FC)"] >= -lfc), "top100"
         ] = "lightgray"
 
     down_int = len(
@@ -282,7 +282,7 @@ def volcano_plot(
     while True:
         n += 1
         if deg_df_up["log(FC)"][n] > lfc:
-            deg_df_up["top100"][n] = "green"
+            deg_df_up.loc[n, "top100"] = "green"
             l += 1
         if l == top or deg_df_up["p_val"][n] > p_val:
             break
@@ -296,7 +296,8 @@ def volcano_plot(
     while True:
         n += 1
         if deg_df_down["log(FC)"][n] < lfc * -1:
-            deg_df_down["top100"][n] = "yellow"
+            deg_df_down.loc[n, "top100"] = "yellow"
+
             l += 1
         if l == top or deg_df_down["p_val"][n] > p_val:
             break
@@ -735,7 +736,7 @@ def features_scatter(
 
     metadata["primary_names"] = [str(x) for x in scatter_df.columns]
 
-    if None is not metadata_list:
+    if metadata_list is not None:
         metadata["sets"] = metadata_list
 
         if len(metadata["primary_names"]) != len(metadata["sets"]):
@@ -749,14 +750,14 @@ def features_scatter(
         metadata["sets"] = [""] * len(metadata["primary_names"])
 
     metadata = pd.DataFrame(metadata)
-    if None is not features:
+    if features is not None:
         scatter_df = scatter_df.loc[
             find_features(data=scatter_df, features=features)["included"],
         ]
     scatter_df.columns = metadata["primary_names"] + "#" + metadata["sets"]
 
-    if None is not occurence_data:
-        if None is not features:
+    if occurence_data is not None:
+        if features is not None:
             occurence_data = occurence_data.loc[
                 find_features(data=occurence_data, features=features)["included"],
             ]
@@ -798,14 +799,14 @@ def features_scatter(
 
         scatter_df = scatter_df.loc[sorted_list_rows, sorted_list_columns]
 
-        if None is not occurence_data:
+        if occurence_data is not None:
             occurence_data = occurence_data.loc[sorted_list_rows, sorted_list_columns]
 
         metadata["sets"] = [re.sub(".*#", "", x) for x in scatter_df.columns]
 
     scatter_df.columns = [re.sub("#.*", "", x) for x in scatter_df.columns]
 
-    if None is not occurence_data:
+    if occurence_data is not None:
         occurence_data.columns = [re.sub("#.*", "", x) for x in occurence_data.columns]
 
     fig, ax = plt.subplots(figsize=(img_width, img_high))
@@ -1040,7 +1041,7 @@ def calc_DEG(
 
     metadata["primary_names"] = [str(x) for x in data.columns]
 
-    if None is not metadata_list:
+    if metadata_list is not None:
         metadata["sets"] = metadata_list
 
         if len(metadata["primary_names"]) != len(metadata["sets"]):
@@ -1097,15 +1098,15 @@ def calc_DEG(
         total_count = tmp_dat.shape[0]
 
         info = pd.DataFrame(
-            {"featrue": list(tmp_dat.columns), "pct": list(counts / total_count)}
+            {"feature": list(tmp_dat.columns), "pct": list(counts / total_count)}
         )
 
         del tmp_dat
 
-        drop_col = info["featrue"][info["pct"] <= min_pct]
+        drop_col = info["feature"][info["pct"] <= min_pct]
 
         if len(drop_col) + 1 == len(choose.columns):
-            drop_col = info["featrue"][info["pct"] == 0]
+            drop_col = info["feature"][info["pct"] == 0]
 
         del info
 
@@ -1130,6 +1131,10 @@ def calc_DEG(
 
             df = df.merge(factors_df, left_on="feature", right_index=True, how="left")
 
+            df[["avg_valid", "avg_ctrl", "factor"]] = df[
+                ["avg_valid", "avg_ctrl", "factor"]
+            ].astype(float)
+
             df["FC"] = (df["avg_valid"] + df["factor"]) / (
                 df["avg_ctrl"] + df["factor"]
             )
@@ -1152,15 +1157,21 @@ def calc_DEG(
         return df
 
     choose = data.T
+
     factors = data.copy().replace(0, np.nan).min(axis=1)
-    factors[factors == 0] = min(factors[factors != 0])
+
+    nonzero_factors = factors[factors != 0]
+    if len(nonzero_factors) > 0:
+        factors[factors == 0] = nonzero_factors.min()
+    else:
+        factors[factors == 0] = 0.01
 
     final_results = []
 
     if isinstance(entities, list) and sets is None:
         print("\nAnalysis started...\nComparing selected cells to the whole set...")
 
-        if None is metadata_list:
+        if metadata_list is None:
             choose.index = metadata["primary_names"]
         else:
             choose.index = metadata["primary_names"] + " # " + metadata["sets"]
@@ -1195,7 +1206,7 @@ def calc_DEG(
     elif entities == "All" and sets is None:
         print("\nAnalysis started...\nComparing each type of cell to others...")
 
-        if None is metadata_list:
+        if metadata_list is None:
             choose.index = metadata["primary_names"]
         else:
             choose.index = metadata["primary_names"] + " # " + metadata["sets"]
@@ -1219,7 +1230,7 @@ def calc_DEG(
 
         final_results = pd.concat(final_results, ignore_index=True)
 
-        if None is metadata_list:
+        if metadata_list is None:
             final_results["valid_group"] = [
                 re.sub(" # ", "", x) for x in final_results["valid_group"]
             ]
@@ -1282,7 +1293,7 @@ def calc_DEG(
     elif isinstance(entities, dict) and sets is None:
         print("\nAnalysis started...\nComparing groups...")
 
-        if None is metadata_list:
+        if metadata_list is None:
             choose.index = metadata["primary_names"]
         else:
             choose.index = metadata["primary_names"] + " # " + metadata["sets"]
@@ -1349,7 +1360,7 @@ def average(data):
 
     wide_data = data
 
-    aggregated_df = wide_data.T.groupby(wide_data.columns, axis=0).mean().T
+    aggregated_df = wide_data.T.groupby(level=0).mean().T
 
     return aggregated_df
 
@@ -1379,10 +1390,11 @@ def occurrence(data):
 
     counts = binary_data.columns.value_counts()
 
-    binary_data = binary_data.T.groupby(binary_data.columns, axis=0).sum().T
+    binary_data = binary_data.T.groupby(level=0).sum().T
+    binary_data = binary_data.astype(float)
 
     for i in counts.index:
-        binary_data.loc[:, i] = binary_data.loc[:, i] / counts[i]
+        binary_data.loc[:, i] = (binary_data.loc[:, i] / counts[i]).astype(float)
 
     return binary_data
 
@@ -1484,11 +1496,11 @@ def development_clust(
         The dendrogram figure.
     """
 
-    Z = linkage(data.T, method=method)
+    z = linkage(data.T, method=method)
 
     figure, ax = plt.subplots(figsize=(img_width, img_high))
 
-    dendrogram(Z, labels=data.columns, orientation="left", ax=ax)
+    dendrogram(z, labels=data.columns, orientation="left", ax=ax)
 
     return figure
 
