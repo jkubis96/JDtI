@@ -556,31 +556,31 @@ class Clustering:
             Silhouette score plot across UMAP dimensions.
         """
 
-        umap_range = range(2, len(self.umap.T)+1)
+        umap_range = range(2, len(self.umap.T) + 1)
 
         silhouette_scores = []
         component = []
         for n in umap_range:
-        
+
             db = DBSCAN(eps=eps, min_samples=min_samples)
             labels = db.fit_predict(np.array(self.umap)[:, :n])
-        
+
             mask = labels != -1
             if len(set(labels[mask])) > 1:
                 score = silhouette_score(np.array(self.umap)[:, :n][mask], labels[mask])
             else:
                 score = -1
-        
+
             silhouette_scores.append(score)
             component.append(n)
-        
+
         fig = plt.figure(figsize=(10, 5))
         plt.plot(component, silhouette_scores, marker="o")
         plt.xlabel("UMAP (n_components)")
         plt.ylabel("Silhouette Score")
         plt.grid(True)
         plt.xticks(range(int(min(component)), int(max(component)) + 1, 1))
-        
+
         plt.show()
 
         return fig
@@ -3016,7 +3016,9 @@ class COMPsc(Clustering):
                 re.sub(" #.*", "", x) for x in similarity_data["cell2"]
             ]
 
-        similarity_data["-euclidean_zscore"] = -zscore(similarity_data["euclidean_dist"])
+        similarity_data["-euclidean_zscore"] = -zscore(
+            similarity_data["euclidean_dist"]
+        )
 
         similarity_data = similarity_data[similarity_data["-euclidean_zscore"] > 0]
 
@@ -3112,15 +3114,13 @@ class COMPsc(Clustering):
             )
 
         similarity_data = self.similarity
-        
+
         sim = similarity_data["correlation"]
         sim_scaled = (sim - sim.min()) / (sim.max() - sim.min())
         eu_dist = similarity_data["euclidean_dist"]
         eu_dist_scaled = (eu_dist - eu_dist.min()) / (eu_dist.max() - eu_dist.min())
 
-        similarity_data["combo_dist"] = (
-            1 -sim_scaled
-        ) * eu_dist_scaled
+        similarity_data["combo_dist"] = (1 - sim_scaled) * eu_dist_scaled
 
         # for nn target
         arrow_df = similarity_data.copy()

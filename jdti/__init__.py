@@ -17,5 +17,5 @@ print(__pattern__)
 from .jdti import *
 
 print("")
-print("Welcome in JDtI v.1.0.0 library")
+print("Welcome in JDtI v.0.1.1 library")
 print("")
