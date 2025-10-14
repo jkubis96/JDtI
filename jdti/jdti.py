@@ -712,7 +712,7 @@ class Clustering:
             UMAP scatter plot figure.
         """
 
-        umap_df = self.umap.iloc[:, 0:2]
+        umap_df = self.umap.iloc[:, 0:2].copy()
         umap_df.loc[:, "names"] = self.clustering_metadata[names_slot]
 
         if set_sep:
@@ -725,7 +725,7 @@ class Clustering:
         else:
             umap_df["dataset"] = "default"
 
-        umap_df["tmp_nam"] = umap_df["names"] + umap_df["dataset"]
+        umap_df.loc[:,"tmp_nam"] = umap_df["names"] + umap_df["dataset"]
 
         umap_df.loc[:, "count"] = umap_df["tmp_nam"].map(
             umap_df["tmp_nam"].value_counts()
@@ -862,7 +862,7 @@ class Clustering:
             UMAP scatter plot colored by feature values.
         """
 
-        umap_df = self.umap.iloc[:, 0:2]
+        umap_df = self.umap.iloc[:, 0:2].copy()
 
         if features_data is None:
 
@@ -881,7 +881,7 @@ class Clustering:
         if not any(blist):
             raise ValueError("Imputed feature_name is not included in the data")
 
-        umap_df["feature"] = (
+        umap_df.loc[:,"feature"] = (
             features_data.loc[blist, :]
             .apply(lambda row: row.tolist(), axis=1)
             .values[0]
