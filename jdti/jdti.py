@@ -725,7 +725,7 @@ class Clustering:
         else:
             umap_df["dataset"] = "default"
 
-        umap_df.loc["tmp_nam"] = umap_df["names"] + umap_df["dataset"]
+        umap_df["tmp_nam"] = umap_df["names"] + umap_df["dataset"]
 
         umap_df.loc[:, "count"] = umap_df["tmp_nam"].map(
             umap_df["tmp_nam"].value_counts()
