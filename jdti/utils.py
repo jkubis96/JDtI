@@ -770,7 +770,7 @@ def features_scatter(
 
     scatter_df.columns = new_cols
 
-    if hclust is None and len(expression_data.index) != 1:
+    if hclust is not None and len(expression_data.index) != 1:
 
         Z = linkage(scatter_df, method=hclust)
 
