@@ -26,11 +26,6 @@ from tqdm import tqdm
 
 from .utils import *
 
-# import warnings
-
-
-# warnings.filterwarnings("ignore", category=RuntimeWarning)
-
 
 class Clustering:
     """

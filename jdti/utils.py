@@ -812,7 +812,6 @@ def features_scatter(
     fig, ax = plt.subplots(figsize=(img_width, img_high))
 
     norm = plt.Normalize(0, np.max(scatter_df))
-    # cmap = plt.cm.viridis
 
     cmap = plt.get_cmap(colors)
 
