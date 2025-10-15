@@ -708,21 +708,21 @@ class Clustering:
         """
 
         umap_df = self.umap.iloc[:, 0:2].copy()
-        umap_df.loc[:, "names"] = self.clustering_metadata[names_slot]
+        umap_df["names"] = list(self.clustering_metadata[names_slot])
 
         if set_sep:
 
-            if "sets" in self.clustering_metadata.columns:
-                umap_df.loc[:, "dataset"] = self.clustering_metadata["sets"]
+            if "sets" in list(self.clustering_metadata.columns):
+                umap_df["dataset"] = list(self.clustering_metadata["sets"])
             else:
                 umap_df["dataset"] = "default"
 
         else:
             umap_df["dataset"] = "default"
 
-        umap_df.loc[:, "tmp_nam"] = umap_df["names"] + umap_df["dataset"]
+        umap_df["tmp_nam"] = list(umap_df["names"] + umap_df["dataset"])
 
-        umap_df.loc[:, "count"] = umap_df["tmp_nam"].map(
+        umap_df["count"] = umap_df["tmp_nam"].map(
             umap_df["tmp_nam"].value_counts()
         )
 
