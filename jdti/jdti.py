@@ -2848,7 +2848,7 @@ class COMPsc(Clustering):
 
         wide_data.columns = list(new_names)
 
-        aggregated_df = wide_data.T.groupby(wide_data.columns, axis=0).mean().T
+        aggregated_df = wide_data.T.groupby(level=0).mean().T
 
         sets = [re.sub(".*# ", "", x) for x in aggregated_df.columns]
         names = [re.sub(" #.*", "", x) for x in aggregated_df.columns]
