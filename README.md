@@ -3,7 +3,7 @@
 
 
 ![Python version](https://img.shields.io/badge/python-%E2%89%A53.12%20%7C%20%3C3.13-blue?logo=python&logoColor=white.png)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-GPLv3-blue)
 ![Docs](https://img.shields.io/badge/docs-available-blueviolet)
 
 
