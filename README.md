@@ -994,7 +994,10 @@ stats = jseq_object.statistic(cells=None, sets='All', min_exp=0, min_pct=0.25, n
 ##### 3.31. Volcano plot  <a id="di31"></a>
 
 ```
-fig16 = volcano_plot(deg_data = stats,
+# select 'valid_group' for volcano plot create; this case 'set1' or 'set2' 
+stats_volcano = stats[stats['valid_group'] == 'set1']
+
+fig16 = volcano_plot(deg_data = stats_volcano,
                   p_adj = True,
                   top = 10,
                   p_val = 0.05,

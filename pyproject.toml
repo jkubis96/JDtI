@@ -1,6 +1,6 @@
 [project]
 name = "jdti"
-version = "0.1.4"
+version = "0.1.5"
 description = ""
 authors = [
     {name = "jkubis96",email = "jbiosystem@gmail.com"}
