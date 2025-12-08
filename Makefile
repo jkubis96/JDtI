@@ -1,4 +1,4 @@
-.PHONY: format lint check all
+.PHONY: format lint all
 
 format:
 	isort jdti

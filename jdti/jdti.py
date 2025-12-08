@@ -1239,23 +1239,7 @@ class COMPsc(Clustering):
                 for c in project_list:
                     f = os.path.join(path_to_directory, filename)
                     if c == filename and os.path.isdir(f):
-                        objects[
-                            str(
-                                re.sub(
-                                    "_count",
-                                    "",
-                                    re.sub(
-                                        "_fq",
-                                        "",
-                                        re.sub(
-                                            re.sub("_.*", "", filename) + "_",
-                                            "",
-                                            filename,
-                                        ),
-                                    ),
-                                )
-                            )
-                        ] = f
+                        objects[str(c)] = f
 
             return cls(objects)
 
