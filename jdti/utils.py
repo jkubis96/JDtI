@@ -71,6 +71,7 @@ def volcano_plot(
     deg_data: pd.DataFrame,
     p_adj: bool = True,
     top: int = 25,
+    top_rank: str = "p_value",
     p_val: float | int = 0.05,
     lfc: float | int = 0.25,
     standard_scale: bool = False,
@@ -96,6 +97,9 @@ def volcano_plot(
     top : int, default=25
         Number of top significant genes to highlight on the plot.
 
+    top_rank : str, default='p_value'
+        Statistic used primarily to determine the top significant genes to highlight on the plot. ['p_value' or 'FC']
+
     p_val : float | int, default=0.05
         Significance threshold for p-values (or adjusted p-values).
 
@@ -120,6 +124,9 @@ def volcano_plot(
         The generated volcano plot figure.
 
     """
+
+    if top_rank.upper() not in ["FC", "P_VALUE"]:
+        raise ValueError("top_rank must be either 'FC' or 'p_value'")
 
     if p_adj:
         pv = "adj_pval"
@@ -215,22 +222,17 @@ def volcano_plot(
 
         deg_df = deg_df.reset_index(drop=True)
 
-        eps = 1e-300
-
         doubled = []
         ratio = []
         for n, i in enumerate(deg_df.index):
             for j in range(1, 6):
                 if (
                     n + j < len(deg_df.index)
-                    and (deg_df[p_val_scale][n] + eps)
-                    / (deg_df[p_val_scale][n + j] + eps)
-                    >= 2
+                    and (deg_df[p_val_scale][n]) / (deg_df[p_val_scale][n + j]) >= 2
                 ):
                     doubled.append(n)
                     ratio.append(
-                        (deg_df[p_val_scale][n + j] + eps)
-                        / (deg_df[p_val_scale][n] + eps)
+                        (deg_df[p_val_scale][n + j]) / (deg_df[p_val_scale][n])
                     )
 
         df = pd.DataFrame({"doubled": doubled, "ratio": ratio})
@@ -279,7 +281,12 @@ def volcano_plot(
     up_int = len(deg_df["top100"][(deg_df["log(FC)"] > lfc) & (deg_df[pv] <= p_val)])
 
     deg_df_up = deg_df[deg_df["log(FC)"] > 0]
-    deg_df_up = deg_df_up.sort_values([pv, "log(FC)"], ascending=[True, False])
+
+    if top_rank.upper() == "P_VALUE":
+        deg_df_up = deg_df_up.sort_values([pv, "log(FC)"], ascending=[True, False])
+    elif top_rank.upper() == "FC":
+        deg_df_up = deg_df_up.sort_values(["log(FC)", pv], ascending=[False, True])
+
     deg_df_up = deg_df_up.reset_index(drop=True)
 
     n = -1
@@ -293,7 +300,12 @@ def volcano_plot(
             break
 
     deg_df_down = deg_df[deg_df["log(FC)"] <= 0]
-    deg_df_down = deg_df_down.sort_values([pv, "log(FC)"], ascending=[True, True])
+
+    if top_rank.upper() == "P_VALUE":
+        deg_df_down = deg_df_down.sort_values([pv, "log(FC)"], ascending=[True, True])
+    elif top_rank.upper() == "FC":
+        deg_df_down = deg_df_down.sort_values(["log(FC)", pv], ascending=[True, True])
+
     deg_df_down = deg_df_down.reset_index(drop=True)
 
     n = -1
