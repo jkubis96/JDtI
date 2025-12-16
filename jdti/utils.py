@@ -215,16 +215,23 @@ def volcano_plot(
 
         deg_df = deg_df.reset_index(drop=True)
 
+        eps = 1e-300
+
         doubled = []
         ratio = []
         for n, i in enumerate(deg_df.index):
             for j in range(1, 6):
                 if (
                     n + j < len(deg_df.index)
-                    and deg_df[p_val_scale][n] / deg_df[p_val_scale][n + j] >= 2
+                    and (deg_df[p_val_scale][n] + eps)
+                    / (deg_df[p_val_scale][n + j] + eps)
+                    >= 2
                 ):
                     doubled.append(n)
-                    ratio.append(deg_df[p_val_scale][n + j] / deg_df[p_val_scale][n])
+                    ratio.append(
+                        (deg_df[p_val_scale][n + j] + eps)
+                        / (deg_df[p_val_scale][n] + eps)
+                    )
 
         df = pd.DataFrame({"doubled": doubled, "ratio": ratio})
         df = df[df["doubled"] < 100]
@@ -257,9 +264,9 @@ def volcano_plot(
                     df["doubled"][c] + 1, p_val_scale
                 ] * (1 + df["ratio"][c])
 
-    deg_df.loc[(deg_df["log(FC)"] <= 0) & (deg_df["p_val"] <= p_val), "top100"] = "red"
-    deg_df.loc[(deg_df["log(FC)"] > 0) & (deg_df["p_val"] <= p_val), "top100"] = "blue"
-    deg_df.loc[deg_df["p_val"] > p_val, "top100"] = "lightgray"
+    deg_df.loc[(deg_df["log(FC)"] <= 0) & (deg_df[pv] <= p_val), "top100"] = "red"
+    deg_df.loc[(deg_df["log(FC)"] > 0) & (deg_df[pv] <= p_val), "top100"] = "blue"
+    deg_df.loc[deg_df[pv] > p_val, "top100"] = "lightgray"
 
     if lfc > 0:
         deg_df.loc[
@@ -267,14 +274,12 @@ def volcano_plot(
         ] = "lightgray"
 
     down_int = len(
-        deg_df["top100"][(deg_df["log(FC)"] <= lfc * -1) & (deg_df["p_val"] <= p_val)]
+        deg_df["top100"][(deg_df["log(FC)"] <= lfc * -1) & (deg_df[pv] <= p_val)]
     )
-    up_int = len(
-        deg_df["top100"][(deg_df["log(FC)"] > lfc) & (deg_df["p_val"] <= p_val)]
-    )
+    up_int = len(deg_df["top100"][(deg_df["log(FC)"] > lfc) & (deg_df[pv] <= p_val)])
 
     deg_df_up = deg_df[deg_df["log(FC)"] > 0]
-    deg_df_up = deg_df_up.sort_values(["p_val", "log(FC)"], ascending=[True, False])
+    deg_df_up = deg_df_up.sort_values([pv, "log(FC)"], ascending=[True, False])
     deg_df_up = deg_df_up.reset_index(drop=True)
 
     n = -1
@@ -284,11 +289,11 @@ def volcano_plot(
         if deg_df_up["log(FC)"][n] > lfc:
             deg_df_up.loc[n, "top100"] = "green"
             l += 1
-        if l == top or deg_df_up["p_val"][n] > p_val:
+        if l == top or deg_df_up[pv][n] > p_val:
             break
 
     deg_df_down = deg_df[deg_df["log(FC)"] <= 0]
-    deg_df_down = deg_df_down.sort_values(["p_val", "log(FC)"], ascending=[True, True])
+    deg_df_down = deg_df_down.sort_values([pv, "log(FC)"], ascending=[True, True])
     deg_df_down = deg_df_down.reset_index(drop=True)
 
     n = -1
@@ -299,7 +304,7 @@ def volcano_plot(
             deg_df_down.loc[n, "top100"] = "yellow"
 
             l += 1
-        if l == top or deg_df_down["p_val"][n] > p_val:
+        if l == top or deg_df_down[pv][n] > p_val:
             break
 
     deg_df = pd.concat([deg_df_up, deg_df_down])
@@ -411,7 +416,7 @@ def volcano_plot(
     ax.grid(visible=False)
 
     ax.annotate(
-        "\nmin p-value = " + str(p_val),
+        f"\nmin {pv} = " + str(p_val),
         xy=(0.025, 0.975),
         xycoords="axes fraction",
         fontsize=12,

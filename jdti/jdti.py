@@ -2524,9 +2524,15 @@ class COMPsc(Clustering):
 
             df = df.merge(factors_df, left_on="feature", right_index=True, how="left")
 
-            df["FC"] = (df["avg_valid"] + df["factor"]) / (
-                df["avg_ctrl"] + df["factor"]
+            valid = df["avg_valid"].where(
+                df["avg_valid"] != 0, df["avg_valid"] + df["factor"]
             )
+            ctrl = df["avg_ctrl"].where(
+                df["avg_ctrl"] != 0, df["avg_ctrl"] + df["factor"]
+            )
+
+            df["FC"] = valid / ctrl
+
             df["log(FC)"] = np.log2(df["FC"])
             df["norm_diff"] = df["avg_valid"] - df["avg_ctrl"]
             df = df.drop(columns=["factor"])
