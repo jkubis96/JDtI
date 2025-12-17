@@ -2480,9 +2480,7 @@ class COMPsc(Clustering):
                 "esm": esm,
             }
 
-        def prepare_and_run_stat(
-            choose, valid_group, min_exp, min_pct, n_proc, factors
-        ):
+        def prepare_and_run_stat(choose, valid_group, min_exp, min_pct, n_proc):
 
             tmp_dat = choose[choose["DEG"] == "target"]
             tmp_dat = tmp_dat.drop("DEG", axis=1)
@@ -2512,6 +2510,8 @@ class COMPsc(Clustering):
             )
 
             df = pd.DataFrame(results)
+            df = df[(df["avg_valid"] > 0) | (df["avg_ctrl"] > 0)]
+
             df["valid_group"] = valid_group
             df.sort_values(by="p_val", inplace=True)
 
@@ -2520,28 +2520,24 @@ class COMPsc(Clustering):
                 1, (df["p_val"] * num_tests) / np.arange(1, num_tests + 1)
             )
 
-            factors_df = factors.to_frame(name="factor")
-
-            df = df.merge(factors_df, left_on="feature", right_index=True, how="left")
+            valid_factor = df["avg_valid"].min() / 2
+            ctrl_factor = df["avg_ctrl"].min() / 2
 
             valid = df["avg_valid"].where(
-                df["avg_valid"] != 0, df["avg_valid"] + df["factor"]
+                df["avg_valid"] != 0, df["avg_valid"] + valid_factor
             )
             ctrl = df["avg_ctrl"].where(
-                df["avg_ctrl"] != 0, df["avg_ctrl"] + df["factor"]
+                df["avg_ctrl"] != 0, df["avg_ctrl"] + ctrl_factor
             )
 
             df["FC"] = valid / ctrl
 
             df["log(FC)"] = np.log2(df["FC"])
             df["norm_diff"] = df["avg_valid"] - df["avg_ctrl"]
-            df = df.drop(columns=["factor"])
 
             return df
 
         choose = self.normalized_data.copy().T
-        factors = self.normalized_data.copy().replace(0, np.nan).min(axis=1)
-        factors[factors == 0] = min(factors[factors != 0])
 
         final_results = []
 
@@ -2573,7 +2569,6 @@ class COMPsc(Clustering):
                 min_exp=min_exp,
                 min_pct=min_pct,
                 n_proc=n_proc,
-                factors=factors,
             )
             return {"valid_cells": valid, "control_cells": "rest", "DEG": result_df}
 
@@ -2595,7 +2590,6 @@ class COMPsc(Clustering):
                     min_exp=min_exp,
                     min_pct=min_pct,
                     n_proc=n_proc,
-                    factors=factors,
                 )
                 final_results.append(result_df)
 
@@ -2618,7 +2612,6 @@ class COMPsc(Clustering):
                     min_exp=min_exp,
                     min_pct=min_pct,
                     n_proc=n_proc,
-                    factors=factors,
                 )
                 final_results.append(result_df)
 
@@ -2651,7 +2644,6 @@ class COMPsc(Clustering):
                 min_exp=min_exp,
                 min_pct=min_pct,
                 n_proc=n_proc,
-                factors=factors,
             )
             return result_df
 
@@ -2692,7 +2684,6 @@ class COMPsc(Clustering):
                 min_exp=min_exp,
                 min_pct=min_pct,
                 n_proc=n_proc,
-                factors=factors,
             )
 
             return result_df.reset_index(drop=True)

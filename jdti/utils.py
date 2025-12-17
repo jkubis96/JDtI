@@ -74,7 +74,6 @@ def volcano_plot(
     top_rank: str = "p_value",
     p_val: float | int = 0.05,
     lfc: float | int = 0.25,
-    standard_scale: bool = False,
     rescale_adj: bool = True,
     image_width: int = 12,
     image_high: int = 12,
@@ -106,9 +105,6 @@ def volcano_plot(
     lfc : float | int, default=0.25
         Threshold for absolute log fold change.
 
-    standard_scale : bool, default=False
-        If True, use standardized p-values for visualization instead of -log10(p-values).
-
     rescale_adj : bool, default=True
         If True, rescale p-values to avoid long breaks caused by outlier values.
 
@@ -135,84 +131,39 @@ def volcano_plot(
 
     deg_df = deg_data.copy()
 
-    if standard_scale:
+    shift = 0.25
 
-        p_val_scale = "scale(p-val)"
+    p_val_scale = "-log(p_val)"
 
-        scaler = MinMaxScaler(feature_range=(0, 1000))
+    min_minus = min(deg_df[pv][(deg_df[pv] != 0) & (deg_df["log(FC)"] < 0)])
+    min_plus = min(deg_df[pv][(deg_df[pv] != 0) & (deg_df["log(FC)"] > 0)])
 
-        tmp_p = deg_df[
-            ((deg_df[pv] != 0) & (deg_df["log(FC)"] < 0))
-            | ((deg_df[pv] != 0) & (deg_df["log(FC)"] > 0))
-        ]
+    zero_p_plus = deg_df[(deg_df[pv] == 0) & (deg_df["log(FC)"] > 0)]
+    zero_p_plus = zero_p_plus.sort_values(by="log(FC)", ascending=False).reset_index(
+        drop=True
+    )
+    zero_p_plus[pv] = [
+        (shift * x) * min_plus for x in range(1, len(zero_p_plus.index) + 1)
+    ]
 
-        tmp_p[p_val_scale] = (-np.log10(deg_df[pv])).astype(float)
+    zero_p_minus = deg_df[(deg_df[pv] == 0) & (deg_df["log(FC)"] < 0)]
+    zero_p_minus = zero_p_minus.sort_values(by="log(FC)", ascending=True).reset_index(
+        drop=True
+    )
+    zero_p_minus[pv] = [
+        (shift * x) * min_minus for x in range(1, len(zero_p_minus.index) + 1)
+    ]
 
-        tmp_p[p_val_scale] = scaler.fit_transform(
-            tmp_p[p_val_scale].values.reshape(-1, 1)
-        ).astype(float)
+    tmp_p = deg_df[
+        ((deg_df[pv] != 0) & (deg_df["log(FC)"] < 0))
+        | ((deg_df[pv] != 0) & (deg_df["log(FC)"] > 0))
+    ]
 
-        median_shift = abs(tmp_p[p_val_scale].diff().max()) * 25
-        cur_max = tmp_p[p_val_scale].max()
+    del deg_df
 
-        zero_p_plus = deg_df[(deg_df[pv] == 0) & (deg_df["log(FC)"] > 0)]
-        zero_p_plus = zero_p_plus.sort_values(by="log(FC)", ascending=True).reset_index(
-            drop=True
-        )
+    deg_df = pd.concat([zero_p_plus, tmp_p, zero_p_minus], ignore_index=True)
 
-        zero_p_plus[p_val_scale] = [
-            (cur_max + (x * median_shift)) for x in range(1, len(zero_p_plus.index) + 1)
-        ]
-        zero_p_plus[p_val_scale] = zero_p_plus[p_val_scale].astype(float)
-
-        zero_p_minus = deg_df[(deg_df[pv] == 0) & (deg_df["log(FC)"] < 0)]
-        zero_p_minus = zero_p_minus.sort_values(
-            by="log(FC)", ascending=False
-        ).reset_index(drop=True)
-
-        zero_p_minus[p_val_scale] = [
-            (cur_max + (x * median_shift))
-            for x in range(1, len(zero_p_minus.index) + 1)
-        ]
-        zero_p_minus[p_val_scale] = zero_p_minus[p_val_scale].astype(float)
-
-        deg_df = pd.concat([zero_p_plus, tmp_p, zero_p_minus], ignore_index=True)
-
-    else:
-
-        shift = 0.25
-
-        p_val_scale = "-log(p_val)"
-
-        min_minus = min(deg_df[pv][(deg_df[pv] != 0) & (deg_df["log(FC)"] < 0)])
-        min_plus = min(deg_df[pv][(deg_df[pv] != 0) & (deg_df["log(FC)"] > 0)])
-
-        zero_p_plus = deg_df[(deg_df[pv] == 0) & (deg_df["log(FC)"] > 0)]
-        zero_p_plus = zero_p_plus.sort_values(
-            by="log(FC)", ascending=False
-        ).reset_index(drop=True)
-        zero_p_plus[pv] = [
-            (shift * x) * min_plus for x in range(1, len(zero_p_plus.index) + 1)
-        ]
-
-        zero_p_minus = deg_df[(deg_df[pv] == 0) & (deg_df["log(FC)"] < 0)]
-        zero_p_minus = zero_p_minus.sort_values(
-            by="log(FC)", ascending=True
-        ).reset_index(drop=True)
-        zero_p_minus[pv] = [
-            (shift * x) * min_minus for x in range(1, len(zero_p_minus.index) + 1)
-        ]
-
-        tmp_p = deg_df[
-            ((deg_df[pv] != 0) & (deg_df["log(FC)"] < 0))
-            | ((deg_df[pv] != 0) & (deg_df["log(FC)"] > 0))
-        ]
-
-        del deg_df
-
-        deg_df = pd.concat([zero_p_plus, tmp_p, zero_p_minus], ignore_index=True)
-
-        deg_df[p_val_scale] = -np.log10(deg_df[pv])
+    deg_df[p_val_scale] = -np.log10(deg_df[pv])
 
     deg_df["top100"] = None
 
@@ -222,17 +173,21 @@ def volcano_plot(
 
         deg_df = deg_df.reset_index(drop=True)
 
+        eps = 1e-300
         doubled = []
         ratio = []
         for n, i in enumerate(deg_df.index):
             for j in range(1, 6):
                 if (
                     n + j < len(deg_df.index)
-                    and (deg_df[p_val_scale][n]) / (deg_df[p_val_scale][n + j]) >= 2
+                    and (deg_df[p_val_scale][n] + eps)
+                    / (deg_df[p_val_scale][n + j] + eps)
+                    >= 2
                 ):
                     doubled.append(n)
                     ratio.append(
-                        (deg_df[p_val_scale][n + j]) / (deg_df[p_val_scale][n])
+                        (deg_df[p_val_scale][n + j] + eps)
+                        / (deg_df[p_val_scale][n] + eps)
                     )
 
         df = pd.DataFrame({"doubled": doubled, "ratio": ratio})
@@ -1104,7 +1059,7 @@ def calc_DEG(
             "esm": esm,
         }
 
-    def prepare_and_run_stat(choose, valid_group, min_exp, min_pct, n_proc, factors):
+    def prepare_and_run_stat(choose, valid_group, min_exp, min_pct, n_proc):
 
         tmp_dat = choose[choose["DEG"] == "target"]
         tmp_dat = tmp_dat.drop("DEG", axis=1)
@@ -1135,6 +1090,9 @@ def calc_DEG(
 
         if len(results) > 0:
             df = pd.DataFrame(results)
+
+            df = df[(df["avg_valid"] > 0) | (df["avg_ctrl"] > 0)]
+
             df["valid_group"] = valid_group
             df.sort_values(by="p_val", inplace=True)
 
@@ -1143,20 +1101,21 @@ def calc_DEG(
                 1, (df["p_val"] * num_tests) / np.arange(1, num_tests + 1)
             )
 
-            factors_df = factors.to_frame(name="factor")
+            valid_factor = df["avg_valid"].min() / 2
+            ctrl_factor = df["avg_ctrl"].min() / 2
 
-            df = df.merge(factors_df, left_on="feature", right_index=True, how="left")
-
-            df[["avg_valid", "avg_ctrl", "factor"]] = df[
-                ["avg_valid", "avg_ctrl", "factor"]
-            ].astype(float)
-
-            df["FC"] = (df["avg_valid"] + df["factor"]) / (
-                df["avg_ctrl"] + df["factor"]
+            valid = df["avg_valid"].where(
+                df["avg_valid"] != 0, df["avg_valid"] + valid_factor
             )
+            ctrl = df["avg_ctrl"].where(
+                df["avg_ctrl"] != 0, df["avg_ctrl"] + ctrl_factor
+            )
+
+            df["FC"] = valid / ctrl
+
             df["log(FC)"] = np.log2(df["FC"])
             df["norm_diff"] = df["avg_valid"] - df["avg_ctrl"]
-            df = df.drop(columns=["factor"])
+
         else:
             columns = [
                 "feature",
@@ -1173,14 +1132,6 @@ def calc_DEG(
         return df
 
     choose = data.T
-
-    factors = data.copy().replace(0, np.nan).min(axis=1)
-
-    nonzero_factors = factors[factors != 0]
-    if len(nonzero_factors) > 0:
-        factors[factors == 0] = nonzero_factors.min()
-    else:
-        factors[factors == 0] = 0.01
 
     final_results = []
 
@@ -1214,7 +1165,6 @@ def calc_DEG(
             min_exp=min_exp,
             min_pct=min_pct,
             n_proc=n_proc,
-            factors=factors,
         )
 
         return {"valid": valid, "control": "rest", "DEG": result_df}
@@ -1240,7 +1190,6 @@ def calc_DEG(
                 min_exp=min_exp,
                 min_pct=min_pct,
                 n_proc=n_proc,
-                factors=factors,
             )
             final_results.append(result_df)
 
@@ -1270,7 +1219,6 @@ def calc_DEG(
                 min_exp=min_exp,
                 min_pct=min_pct,
                 n_proc=n_proc,
-                factors=factors,
             )
             final_results.append(result_df)
 
@@ -1302,7 +1250,6 @@ def calc_DEG(
             min_exp=min_exp,
             min_pct=min_pct,
             n_proc=n_proc,
-            factors=factors,
         )
         return result_df
 
@@ -1344,7 +1291,6 @@ def calc_DEG(
             min_exp=min_exp,
             min_pct=min_pct,
             n_proc=n_proc,
-            factors=factors,
         )
 
         return result_df.reset_index(drop=True)
