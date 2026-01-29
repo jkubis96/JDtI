@@ -248,7 +248,7 @@ def volcano_plot(
     l = 0
     while True:
         n += 1
-        if deg_df_up["log(FC)"][n] > lfc:
+        if deg_df_up["log(FC)"][n] > lfc and deg_df_up[pv][n] <= p_val:
             deg_df_up.loc[n, "top100"] = "green"
             l += 1
         if l == top or deg_df_up[pv][n] > p_val:
@@ -267,7 +267,7 @@ def volcano_plot(
     l = 0
     while True:
         n += 1
-        if deg_df_down["log(FC)"][n] < lfc * -1:
+        if deg_df_down["log(FC)"][n] < lfc * -1 and deg_df_down[pv][n] <= p_val:
             deg_df_down.loc[n, "top100"] = "yellow"
 
             l += 1
@@ -290,9 +290,18 @@ def volcano_plot(
         x=deg_df["log(FC)"], y=deg_df[p_val_scale], color=deg_df["top100"], zorder=2
     )
 
+    tl = deg_df[p_val_scale][deg_df[pv] >= p_val]
+
+    if len(tl) > 0:
+
+        line_p = np.max(tl)
+
+    else:
+        line_p = np.min(deg_df[p_val_scale])
+
     plt.plot(
         [max(deg_df["log(FC)"]) * -1.1, max(deg_df["log(FC)"]) * 1.1],
-        [-np.log10(p_val), -np.log10(p_val)],
+        [line_p, line_p],
         linestyle="--",
         linewidth=3,
         color="lightgray",
@@ -818,15 +827,14 @@ def features_scatter(
     ax.set_xticks(range(len(scatter_df.columns)))
     ax.set_xticklabels(scatter_df.columns, fontsize=label_size * 0.8, rotation=90)
 
-    # color bar
-    cax = inset_axes(
-        ax,
-        width="1%",
-        height=f"{bbox_to_anchor_scale}%",
-        bbox_to_anchor=(1, 0, 1, 1),
-        bbox_transform=ax.transAxes,
-        loc="upper left",
-    )
+    ax_pos = ax.get_position()
+
+    width_fig = 0.01
+    height_fig = ax_pos.height * (bbox_to_anchor_scale / 100)
+    left_fig = ax_pos.x1 + 0.01
+    bottom_fig = ax_pos.y1 - height_fig
+
+    cax = fig.add_axes([left_fig, bottom_fig, width_fig, height_fig])
     cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
     cb.set_label(legend_lab, fontsize=label_size * 0.65)
     cb.ax.tick_params(labelsize=label_size * 0.7)
