@@ -3758,17 +3758,6 @@ class COMPsc(Clustering):
             names=names, features=features, name_slot=name_slot, inc_metadata=True
         )
 
-        if scale:
-
-            legend_lab = "Scaled\n" + legend_lab
-
-            scaler = MinMaxScaler(feature_range=(0, 1))
-            prtd = pd.DataFrame(
-                scaler.fit_transform(prtd.T).T,
-                index=prtd.index,
-                columns=prtd.columns,
-            )
-
         prtd.columns = prtd.columns + "#" + met["sets"]
 
         prtd_avg = average(prtd)
