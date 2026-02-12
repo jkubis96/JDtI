@@ -2448,6 +2448,8 @@ class COMPsc(Clustering):
         Multiple modes supported: single-list entities, 'All', pairwise dicts, etc.
         """
 
+        offset = 1e-100
+
         def stat_calc(choose, feature_name):
             target_values = choose.loc[choose["DEG"] == "target", feature_name]
             rest_values = choose.loc[choose["DEG"] == "rest", feature_name]
@@ -2522,6 +2524,12 @@ class COMPsc(Clustering):
 
             valid_factor = df["avg_valid"].min() / 2
             ctrl_factor = df["avg_ctrl"].min() / 2
+
+            if not np.isfinite(valid_factor) or valid_factor == 0:
+                valid_factor += offset
+
+            if not np.isfinite(ctrl_factor) or ctrl_factor == 0:
+                ctrl_factor += offset
 
             valid = df["avg_valid"].where(
                 df["avg_valid"] != 0, df["avg_valid"] + valid_factor

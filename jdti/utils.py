@@ -163,6 +163,8 @@ def volcano_plot(
 
     deg_df = pd.concat([zero_p_plus, tmp_p, zero_p_minus], ignore_index=True)
 
+    deg_df[pv] = deg_df[pv].replace(0, 2**-1074)
+
     deg_df[p_val_scale] = -np.log10(deg_df[pv])
 
     deg_df["top100"] = None
@@ -1015,6 +1017,7 @@ def calc_DEG(
     >>> sets = {"GroupA": ["A1", "A2"], "GroupB": ["B1", "B2"]}
     >>> result = calc_DEG(data, sets=sets)
     """
+    offset = 1e-100
 
     metadata = {}
 
@@ -1107,10 +1110,16 @@ def calc_DEG(
             num_tests = len(df)
             df["adj_pval"] = np.minimum(
                 1, (df["p_val"] * num_tests) / np.arange(1, num_tests + 1)
-            )
+            )             
 
             valid_factor = df["avg_valid"].min() / 2
             ctrl_factor = df["avg_ctrl"].min() / 2
+
+            if not np.isfinite(valid_factor) or valid_factor == 0:
+                valid_factor += offset
+
+            if not np.isfinite(ctrl_factor) or ctrl_factor == 0:
+                ctrl_factor += offset
 
             valid = df["avg_valid"].where(
                 df["avg_valid"] != 0, df["avg_valid"] + valid_factor
