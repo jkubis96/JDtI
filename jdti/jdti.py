@@ -1796,27 +1796,18 @@ class COMPsc(Clustering):
 
         if True not in columns_bool and True not in features_bool:
             print("Missing 'names' and/or 'features'. Returning full dataset instead.")
-            if inc_metadata:
-                return data, metadata
-            else:
-                return data
-
+            
         if True in columns_bool:
             data = data.loc[:, columns_bool]
             metadata = metadata.loc[columns_bool, :]
 
-            if inc_metadata:
-                return data, metadata
-            else:
-                return data
-
         if True in features_bool:
             data = data.loc[features_bool, :]
 
-            if inc_metadata:
-                return data, metadata
-            else:
-                return data
+        if inc_metadata:
+            return data, metadata
+        else:
+            return data
 
     def get_metadata(self):
         """
