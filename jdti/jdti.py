@@ -1804,6 +1804,18 @@ class COMPsc(Clustering):
         if True in features_bool:
             data = data.loc[features_bool, :]
 
+        not_in_features = [y for y in features if y not in features_names]
+
+        if len(not_in_features) > 0:
+            print('\nThe following features were not found in data:')
+            print('\n'.join(not_in_features))
+
+        not_in_names = [y for y in names if y not in columns_names]
+
+        if len(not_in_names) > 0:
+            print('\nThe following names were not found in data:')
+            print('\n'.join(not_in_names))
+
         if inc_metadata:
             return data, metadata
         else:
