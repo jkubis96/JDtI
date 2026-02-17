@@ -2487,6 +2487,10 @@ class COMPsc(Clustering):
 
         def prepare_and_run_stat(choose, valid_group, min_exp, min_pct, n_proc):
 
+            def safe_min_half(series):
+                filtered = series[(series > ((2**-1074)*2)) & (series.notna())]
+                return filtered.min() / 2 if not filtered.empty else 0
+        
             tmp_dat = choose[choose["DEG"] == "target"]
             tmp_dat = tmp_dat.drop("DEG", axis=1)
 
@@ -2525,20 +2529,22 @@ class COMPsc(Clustering):
                 1, (df["p_val"] * num_tests) / np.arange(1, num_tests + 1)
             )
 
-            valid_factor = df["avg_valid"].min() / 2
-            ctrl_factor = df["avg_ctrl"].min() / 2
+            valid_factor = safe_min_half(df["avg_valid"])
+            ctrl_factor = safe_min_half(df["avg_ctrl"])
 
-            if not np.isfinite(valid_factor) or valid_factor == 0:
-                valid_factor += offset
+            cv_factor = min(valid_factor, ctrl_factor)
 
-            if not np.isfinite(ctrl_factor) or ctrl_factor == 0:
-                ctrl_factor += offset
+            if cv_factor == 0:
+                cv_factor = max(valid_factor, ctrl_factor)
+
+            if not np.isfinite(cv_factor) or cv_factor == 0:
+                cv_factor += offset
 
             valid = df["avg_valid"].where(
-                df["avg_valid"] != 0, df["avg_valid"] + valid_factor
+                df["avg_valid"] != 0, df["avg_valid"] + cv_factor
             )
             ctrl = df["avg_ctrl"].where(
-                df["avg_ctrl"] != 0, df["avg_ctrl"] + ctrl_factor
+                df["avg_ctrl"] != 0, df["avg_ctrl"] + cv_factor
             )
 
             df["FC"] = valid / ctrl
