@@ -21,7 +21,7 @@ from scipy.stats import norm, stats, zscore
 from sklearn.cluster import DBSCAN, MeanShift
 from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances, silhouette_score
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
 from .utils import *

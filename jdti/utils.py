@@ -13,7 +13,6 @@ from matplotlib.lines import Line2D
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.io import mmread
-from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 
 
@@ -639,7 +638,7 @@ def features_scatter(
         If None, bubble sizes are based on expression values.
 
     scale: bool, default False
-        If True, expression_data will be scaled (0–1) across the rows (features).
+        If True, expression_data (features) will be scaled (0–1) across the colums (sample).
 
     features : list or None
         List of features (rows) to display. If None, all features are used.
@@ -708,12 +707,10 @@ def features_scatter(
 
         legend_lab = "Scaled\n" + legend_lab
 
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        scatter_df = pd.DataFrame(
-            scaler.fit_transform(scatter_df.T).T,
-            index=scatter_df.index,
-            columns=scatter_df.columns,
-        )
+        column_max = scatter_df.max()
+        scatter_df = scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
+        scatter_df = pd.DataFrame(scatter_df, index=scatter_df.index, columns=scatter_df.columns)
+
 
     metadata = {}
 
