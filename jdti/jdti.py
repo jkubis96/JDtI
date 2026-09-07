@@ -23,6 +23,8 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances, silhouette_score
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
+from typing import Literal
+
 
 from .utils import *
 
@@ -1045,7 +1047,7 @@ class COMPsc(Clustering):
         - Visualizing similarity and spatial relationships
         - Aggregating data by cell and set annotations
         - Managing metadata and renaming labels
-        - Plotting gene detection histograms and feature scatters
+        - Plotting gene detection histograms and feature dot plots
 
     Methods
     -------
@@ -1113,7 +1115,7 @@ class COMPsc(Clustering):
         Computes pairwise correlation and Euclidean distance between aggregated samples.
 
     similarity_plot(split_sets=True, set_info=True, cmap='seismic', width=12, height=10)
-        Visualizes pairwise similarity as a scatter plot with correlation as hue and scaled distance as point size.
+        Visualizes pairwise similarity as a dot plot with correlation as hue and scaled distance as point size.
 
     spatial_similarity(set_info=True, bandwidth=1, n_neighbors=5, min_dist=0.1, legend_split=2, point_size=20, ...)
         Creates a UMAP-like visualization of similarity relationships with cluster hulls and nearest-neighbor arrows.
@@ -1124,11 +1126,11 @@ class COMPsc(Clustering):
     define_subclusters(umap_num=2, eps=0.5, min_samples=10, bandwidth=1, n_neighbors=5, min_dist=0.1, ...)
         Performs UMAP and DBSCAN clustering on prepared subcluster data and stores cluster labels.
 
-    subcluster_features_scatter(colors='viridis', hclust='complete', img_width=3, img_high=5, label_size=6, ...)
-        Visualizes averaged expression and occurrence of features for subclusters as a scatter plot.
+    subcluster_features_dot(colors='viridis', hclust='complete', img_width=3, img_high=5, label_size=6, ...)
+        Visualizes averaged expression and occurrence of features for subclusters as a dot plot.
 
-    subcluster_DEG_scatter(top_n=3, min_exp=0, min_pct=0.25, p_val=0.05, colors='viridis', ...)
-        Plots top differential features for subclusters as a features-scatter visualization.
+    subcluster_DEG_dot(top_n=3, min_exp=0, min_pct=0.25, p_val=0.05, colors='viridis', ...)
+        Plots top differential features for subclusters as a features-dot visualization.
 
     accept_subclusters()
         Commits subcluster labels to main metadata by renaming cell names and clears subcluster data.
@@ -2939,7 +2941,7 @@ class COMPsc(Clustering):
         height=10,
     ):
         """
-        Visualize pairwise similarity as a scatter plot.
+        Visualize similarity as a dot plot.
 
         Parameters
         ----------
@@ -3136,7 +3138,7 @@ class COMPsc(Clustering):
             min_dist=min_dist,
             spread=spread,
             set_op_mix_ratio=set_op_mix_ratio,
-            local_connectivity=set_op_mix_ratio,
+            local_connectivity=local_connectivity,
             repulsion_strength=repulsion_strength,
             negative_sample_rate=negative_sample_rate,
             transform_seed=42,
@@ -3406,11 +3408,12 @@ class COMPsc(Clustering):
 
         return fig
 
-    def subcluster_features_scatter(
+    def subcluster_features_dot(
         self,
         colors="viridis",
         hclust="complete",
         scale=False,
+        scale_axis: Literal['x', 'y'] = 'y',
         img_width=3,
         img_high=5,
         label_size=6,
@@ -3421,18 +3424,24 @@ class COMPsc(Clustering):
         bbox_to_anchor_perc: tuple = (0.91, 0.63),
     ):
         """
-        Create a features-scatter visualization for the subclusters (averaged and occurrence).
+        Create a features-dot visualization for the subclusters (averaged and occurrence).
 
         Parameters
         ----------
         colors : str, default 'viridis'
-            Colormap name passed to `features_scatter`.
+            Colormap name passed to `features_dot`.
 
         hclust : str or None
             Hierarchical clustering linkage to order rows/columns.
 
         scale: bool, default False
             If True, expression data will be scaled (0–1) across the rows (features).
+
+        scale_axis : {'x', 'y'}, default 'y'
+            The axis along which to scale the expression data to the [0, 1] range:
+            - 'y': Scales across columns (per sample / cell).
+            - 'x': Scales across rows (per feature / gene).
+            Only effective if `scale=True`.
 
         img_width, img_high : float
             Figure size.
@@ -3484,11 +3493,12 @@ class COMPsc(Clustering):
         avg = average(dat)
         occ = occurrence(dat)
 
-        scatter = features_scatter(
+        scatter = features_dot(
             expression_data=avg,
             occurence_data=occ,
             features=None,
             scale=scale,
+            scale_axis=scale_axis,
             metadata_list=None,
             colors=colors,
             hclust=hclust,
@@ -3504,7 +3514,7 @@ class COMPsc(Clustering):
 
         return scatter
 
-    def subcluster_DEG_scatter(
+    def subcluster_DEG_dot(
         self,
         top_n=3,
         min_exp=0,
@@ -3513,6 +3523,7 @@ class COMPsc(Clustering):
         colors="viridis",
         hclust="complete",
         scale=False,
+        scale_axis: Literal['x', 'y'] = 'y',
         img_width=3,
         img_high=5,
         label_size=6,
@@ -3524,7 +3535,7 @@ class COMPsc(Clustering):
         n_proc=10,
     ):
         """
-        Plot top differential features (DEGs) for subclusters as a features-scatter.
+        Plot top differential features (DEGs) for subclusters as a features-dot.
 
         Parameters
         ----------
@@ -3546,6 +3557,12 @@ class COMPsc(Clustering):
         scale: bool, default False
             If True, expression_data will be scaled (0–1) across the rows (features).
 
+        scale_axis : {'x', 'y'}, default 'y'
+            The axis along which to scale the expression data to the [0, 1] range:
+            - 'y': Scales across columns (per sample / cell).
+            - 'x': Scales across rows (per feature / gene).
+            Only effective if `scale=True`.
+            
         colors : str, default='viridis'
             Colormap for expression values.
 
@@ -3632,11 +3649,13 @@ class COMPsc(Clustering):
         avg = average(dat)
         occ = occurrence(dat)
 
-        scatter = features_scatter(
+        scatter = features_dot(
             expression_data=avg,
             occurence_data=occ,
             features=None,
             metadata_list=None,
+            scale_axis = scale_axis,
+            scale = scale,
             colors=colors,
             hclust=hclust,
             img_width=img_width,
@@ -3686,12 +3705,13 @@ class COMPsc(Clustering):
 
         self.subclusters_ = None
 
-    def scatter_plot(
+    def dot_plot(
         self,
         names: list | None = None,
         features: list | None = None,
         name_slot: str = "cell_names",
         scale=True,
+        scale_axis: Literal['x', 'y'] = 'y',
         colors="viridis",
         hclust=None,
         img_width=15,
@@ -3707,7 +3727,7 @@ class COMPsc(Clustering):
         bbox_to_anchor_group=(1.01, 0.4),
     ):
         """
-        Create a bubble scatter plot of selected features across samples inside project.
+        Create a dot plot of selected features across samples inside project.
 
         Each point represents a feature-sample pair, where the color encodes the
         expression value and the size encodes occurrence or relative abundance.
@@ -3726,6 +3746,12 @@ class COMPsc(Clustering):
 
         scale: bool, default False
             If True, expression_data will be scaled (0–1) across the rows (features).
+
+        scale_axis : {'x', 'y'}, default 'y'
+            The axis along which to scale the expression data to the [0, 1] range:
+            - 'y': Scales across columns (per sample / cell).
+            - 'x': Scales across rows (per feature / gene).
+            Only effective if `scale=True`.
 
         colors : str, default='viridis'
             Colormap for expression values.
@@ -3764,7 +3790,7 @@ class COMPsc(Clustering):
         Returns
         -------
         matplotlib.figure.Figure
-            The generated scatter plot figure.
+            The generated dot plot figure.
 
         Notes
         -----
@@ -3787,10 +3813,11 @@ class COMPsc(Clustering):
 
         prtd_occ.columns = [re.sub("#.*", "", x) for x in prtd_occ.columns]
 
-        fig_scatter = features_scatter(
+        fig_scatter = features_dot(
             expression_data=prtd_avg,
             occurence_data=prtd_occ,
             scale=scale,
+            scale_axis=scale_axis,
             features=None,
             metadata_list=meta_sets,
             colors=colors,

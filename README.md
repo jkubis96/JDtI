@@ -108,7 +108,7 @@ It is compatible with various sequencing approaches, including scRNA-seq and bul
     - [3.29. *De novo* clustering - Visualization of clusters on UMAP reduced space](#di29)
     - [3.30. Differential expression analysis](#di30)
     - [3.31. Volcano plot](#di31)
-    - [3.32. Scatter plot](#di32)
+    - [3.32. Dot plot](#di32)
     - [3.33. Visualization of feature level on UMAP reduced space](#di33)
     - [3.34. Sample / cell composition calculation](#di34)
     - [3.35. Composition - pie plot](#di35)
@@ -298,17 +298,17 @@ top_10 = deg_df.sort_values(
     ['p_val', 'esm', 'log(FC)'], 
     ascending=[True, False, False]).head(10)
 
-data_scatter = reduce_data(data,
+data_dot = reduce_data(data,
                 features = list(set(top_10['feature'])),
                 names = names['included'])
 
 
 
-avg = average(data_scatter)
-occ = occurrence(data_scatter)
+avg = average(data_dot)
+occ = occurrence(data_dot)
 
 
-fig = features_scatter(expression_data = avg, 
+fig = features_dot(expression_data = avg, 
                      occurence_data = occ,
                      features = None, 
                      metadata_list = None, 
@@ -324,10 +324,10 @@ fig = features_scatter(expression_data = avg,
                      bbox_to_anchor_perc=(0.91, 0.55),
                      bbox_to_anchor_group=(1.01, 0.4))
 
-fig.savefig('scatter.jpeg', dpi=300, bbox_inches='tight')
+fig.savefig('dot.jpeg', dpi=300, bbox_inches='tight')
 ```
 
-* **Scatter plot** – *Displays expression relationships of DEGs across groups or individual samples*
+* **Dot plot** – *Displays expression relationships of DEGs across groups or individual samples*
 
 
 <p align="center">
@@ -1018,12 +1018,12 @@ fig16.savefig('int_volcano.jpeg', dpi=300, bbox_inches='tight')
 
 
 
-##### 3.32. Scatter plot  <a id="di32"></a>
+##### 3.32. Dot plot  <a id="di32"></a>
 
 ```
 stats_5 = stats.sort_values(['valid_group', 'esm', 'log(FC)'], ascending=[True, False, False]).groupby('valid_group').head(5)
 
-fig17 = jseq_object.scatter_plot(
+fig17 = jseq_object.dot_plot(
                  names = None,
                  features = list(set(stats_5['feature'])),
                  name_slot = 'cell_names',
@@ -1043,7 +1043,7 @@ fig17 = jseq_object.scatter_plot(
                  bbox_to_anchor_group=(0.9, 0.3))
 
 
-fig17.savefig('int_scatter_DEG.jpeg', dpi=300, bbox_inches='tight')
+fig17.savefig('int_dot_DEG.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
@@ -1254,7 +1254,7 @@ fig1.savefig('sub_umap_clust.jpeg', dpi=300, bbox_inches='tight')
 ##### 4.7. Visualize subclusters features <a id="ds7"></a>
 
 ```
-fig2 = jseq_object.subcluster_features_scatter(
+fig2 = jseq_object.subcluster_features_dot(
                                         colors = 'viridis', 
                                         hclust = 'complete', 
                                         img_width = 3, 
@@ -1264,7 +1264,7 @@ fig2 = jseq_object.subcluster_features_scatter(
                                         y_lab = 'Genes', 
                                         legend_lab = 'normalized')
     
-fig2.savefig('sub_scatter_clust_genes.jpeg', dpi=300, bbox_inches='tight')
+fig2.savefig('sub_dot_clust_genes.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
@@ -1287,7 +1287,7 @@ jseq_object.rename_subclusters(mapping)
 ```
 
 ```
-fig3 = jseq_object.subcluster_features_scatter(
+fig3 = jseq_object.subcluster_features_dot(
                                         colors = 'viridis', 
                                         hclust = 'complete', 
                                         img_width = 3, 
@@ -1297,7 +1297,7 @@ fig3 = jseq_object.subcluster_features_scatter(
                                         y_lab = 'Genes', 
                                         legend_lab = 'normalized')
 
-fig3.savefig('sub_scatter_clust_genes_reduced.jpeg', dpi=300, bbox_inches='tight')
+fig3.savefig('sub_dot_clust_genes_reduced.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
 <img  src="https://github.com/jkubis96/JDtI/blob/v.1/fig/sub_scatter_clust_genes_reduced.jpeg?raw=true" alt="drawing" width="400" />
@@ -1309,7 +1309,7 @@ fig3.savefig('sub_scatter_clust_genes_reduced.jpeg', dpi=300, bbox_inches='tight
 
 
 ```
-fig4 = jseq_object.subcluster_DEG_scatter(
+fig4 = jseq_object.subcluster_DEG_dot(
                                     top_n = 3,
                                     min_exp = 0, 
                                     min_pct = 0.1, 
@@ -1324,7 +1324,7 @@ fig4 = jseq_object.subcluster_DEG_scatter(
                                     legend_lab = 'normalized',
                                     n_proc=10)
     
-fig4.savefig('sub_scatter_clust_genes_reduced_DEG.jpeg', dpi=300, bbox_inches='tight')
+fig4.savefig('sub_dot_clust_genes_reduced_DEG.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
 <img  src="https://github.com/jkubis96/JDtI/blob/v.1/fig/sub_scatter_clust_genes_reduced_DEG.jpeg?raw=true" alt="drawing" width="400" />

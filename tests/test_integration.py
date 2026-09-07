@@ -162,7 +162,7 @@ def test_umap_feature(jseq_object):
     assert isinstance(fig, mpl.figure.Figure)
 
 
-def test_statistics_and_volcano_and_scatter(jseq_object):
+def test_statistics_and_volcano_and_dot(jseq_object):
     stats = jseq_object.statistic(
         cells=None, sets="All", min_exp=0, min_pct=0.05, n_proc=2
     )
@@ -179,7 +179,7 @@ def test_statistics_and_volcano_and_scatter(jseq_object):
         .head(5)
     )
 
-    fig = jseq_object.scatter_plot(
+    fig = jseq_object.dot_plot(
         names=None,
         features=list(set(stats_5["feature"])),
         name_slot="cell_names",

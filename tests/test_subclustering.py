@@ -55,8 +55,8 @@ def test_rename_subclusters(jseq_object):
     assert "2" not in jseq_object.subclusters_.subclusters
 
 
-def test_subcluster_DEG_scatter(jseq_object):
-    fig = jseq_object.subcluster_DEG_scatter(
+def test_subcluster_DEG_dot(jseq_object):
+    fig = jseq_object.subcluster_DEG_dot(
         top_n=3,
         min_exp=0,
         min_pct=0.1,

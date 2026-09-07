@@ -601,10 +601,11 @@ def get_color_palette(variable_list, palette_name="tab10"):
     return dict(zip(variable_list, colors))
 
 
-def features_scatter(
+def features_dot(
     expression_data: pd.DataFrame,
     occurence_data: pd.DataFrame | None = None,
     scale: bool = False,
+    scale_axis: Literal['x', 'y'] = 'y',
     features: list | None = None,
     metadata_list: list | None = None,
     colors: str = "viridis",
@@ -622,7 +623,7 @@ def features_scatter(
     bbox_to_anchor_group: tuple = (1.01, 0.4),
 ):
     """
-    Create a bubble scatter plot of selected features across samples.
+    Create a dot plot of selected features across samples.
 
     Each point represents a feature-sample pair, where the color encodes the
     expression value and the size encodes occurrence or relative abundance.
@@ -638,7 +639,13 @@ def features_scatter(
         If None, bubble sizes are based on expression values.
 
     scale: bool, default False
-        If True, expression_data (features) will be scaled (0–1) across the colums (sample).
+        If True, expression_data (features) will be scaled (0–1) across the colums (sample) with Maximum Absolute Scaling method.
+        
+    scale_axis : {'x', 'y'}, default 'y'
+        The axis along which to scale the expression data to the [0, 1] range:
+        - 'y': Scales across columns (per sample / cell).
+        - 'x': Scales across rows (per feature / gene).
+        Only effective if `scale=True`.
 
     features : list or None
         List of features (rows) to display. If None, all features are used.
@@ -684,7 +691,7 @@ def features_scatter(
     Returns
     -------
     matplotlib.figure.Figure
-        The generated scatter plot figure.
+        The generated dot plot figure.
 
     Raises
     ------
@@ -700,17 +707,12 @@ def features_scatter(
     - If `metadata_list` is given, groups are indicated with colors and
       dashed vertical separators.
     """
-
+    if scale and scale_axis not in ['x', 'X', 'y', 'Y']:
+        raise ValueError(
+            "Wrong axis to scale. scale_axis must be 'x' or 'y'."
+        )
+    
     scatter_df = expression_data.copy()
-
-    if scale:
-
-        legend_lab = "Scaled\n" + legend_lab
-
-        column_max = scatter_df.max()
-        scatter_df = scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
-        scatter_df = pd.DataFrame(scatter_df, index=scatter_df.index, columns=scatter_df.columns)
-
 
     metadata = {}
 
@@ -750,6 +752,26 @@ def features_scatter(
     new_cols = make_unique_list(list(tmp_columns))
 
     scatter_df.columns = new_cols
+    
+    # scaling
+    if scale:
+
+        legend_lab = "Scaled\n" + legend_lab
+
+        column_max = scatter_df.max()
+        scatter_df = scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
+        scatter_df = pd.DataFrame(scatter_df, index=scatter_df.index, columns=scatter_df.columns)
+            
+        if scale_axis.upper() == 'X':
+            scatter_df = scatter_df.T
+    
+        column_max = scatter_df.max()
+        scatter_df = scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
+        scatter_df = pd.DataFrame(scatter_df, index=scatter_df.index, columns=scatter_df.columns)
+    
+        if scale_axis.upper() == 'X':
+            scatter_df = scatter_df.T
+            
 
     if hclust is not None and len(expression_data.index) != 1:
 
@@ -795,7 +817,7 @@ def features_scatter(
 
     cmap = plt.get_cmap(colors)
 
-    # Bubble scatter
+    # dot-plot
     for i, _ in enumerate(scatter_df.index):
         for j, _ in enumerate(scatter_df.columns):
             if occurence_data is not None:

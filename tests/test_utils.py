@@ -8,7 +8,7 @@ from jdti import (
     average,
     calc_DEG,
     development_clust,
-    features_scatter,
+    features_dot,
     find_features,
     find_names,
     get_color_palette,
@@ -108,7 +108,7 @@ def test_average_occurrence(input_data):
     assert isinstance(occ, pd.DataFrame)
 
 
-def test_features_scatter(input_data):
+def test_features_dot(input_data):
     data, _ = input_data
 
     res1 = find_features(data, features=["KIT", "MC1R", "EDNRB", "PAX3"])
@@ -118,7 +118,7 @@ def test_features_scatter(input_data):
 
     avg = average(data_reduced)
     occ = occurrence(data_reduced)
-    fig = features_scatter(expression_data=avg, occurence_data=occ)
+    fig = features_dot(expression_data=avg, occurence_data=occ)
 
     assert isinstance(fig, mpl.figure.Figure)
 
