@@ -14,6 +14,8 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.io import mmread
 from tqdm import tqdm
+from typing import Literal
+
 
 
 def load_sparse(path: str, name: str):
