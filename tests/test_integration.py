@@ -88,13 +88,22 @@ def test_similarity_cell_to_cell(jseq_object):
         cell_y="6",
         set_x="set1",
         set_y="set2",
-        threshold=6,
+        min_log=0.5,
+        n_max = 20,
+        min_exp=0.1,
+        min_pct=0.5,
+        n_proc=10,
+        min_esm = 0.5,
+        p_val=0.05,
+        adj = True,
         image_width=12,
-        image_high=7,
-        color="black",
+        image_high=7
     )
 
     assert isinstance(fig, mpl.figure.Figure)
+
+
+
 
 
 def test_spatial_similarity(jseq_object):
