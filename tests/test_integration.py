@@ -83,7 +83,7 @@ def test_similarity(jseq_object):
 
 def test_similarity_cell_to_cell(jseq_object):
 
-    fig = jseq_object.cell_regression(
+    df, fig = jseq_object.cell_regression(
         cell_x="11",
         cell_y="6",
         set_x="set1",
@@ -101,6 +101,7 @@ def test_similarity_cell_to_cell(jseq_object):
     )
 
     assert isinstance(fig, mpl.figure.Figure)
+    assert isinstance(df, pd.DataFrame)
 
 
 
