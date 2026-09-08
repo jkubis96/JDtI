@@ -89,44 +89,39 @@ def test_similarity_cell_to_cell(jseq_object):
         set_x="set1",
         set_y="set2",
         min_log=0.5,
-        n_max = 20,
+        n_max=20,
         min_exp=0.1,
         min_pct=0.5,
         n_proc=10,
-        min_esm = 0.5,
+        min_esm=0.5,
         p_val=0.05,
-        adj = True,
+        adj=True,
         image_width=12,
-        image_high=7
+        image_high=7,
     )
 
     assert isinstance(fig, mpl.figure.Figure)
     assert isinstance(df, pd.DataFrame)
 
 
-
 def test_genes_distribution(jseq_object):
 
     fig = jseq_object.cell_genes_distribution(
-            cells_names = ["11", "6"],
-            cells_sets = None,
-            image_width=10,
-            image_high=7
-        )
+        cells_names=["11", "6"], cells_sets=None, image_width=10, image_high=7
+    )
 
     assert isinstance(fig, mpl.figure.Figure)
-
 
 
 def test_mm_cell_genes(jseq_object):
 
     fig = jseq_object.mm_cell_genes(
-            cells_names = ["11", "6"],
-            cells_sets = None,
-            non_include_zeros = True,
-            image_width=7,
-            image_high=10
-        )
+        cells_names=["11", "6"],
+        cells_sets=None,
+        non_include_zeros=True,
+        image_width=7,
+        image_high=10,
+    )
 
     assert isinstance(fig, mpl.figure.Figure)
 
@@ -134,11 +129,8 @@ def test_mm_cell_genes(jseq_object):
 def test_cell_dispersion(jseq_object):
 
     fig = jseq_object.cell_dispersion(
-            cells_names = ["11", "6"],
-            cells_sets = None,
-            image_width=7,
-            image_high=10
-        )
+        cells_names=["11", "6"], cells_sets=None, image_width=7, image_high=10
+    )
 
     assert isinstance(fig, mpl.figure.Figure)
 

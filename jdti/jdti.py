@@ -2,6 +2,7 @@ import math
 import os
 import pickle
 import re
+from typing import Literal
 
 import harmonypy as harmonize
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ import seaborn as sns
 import umap
 from adjustText import adjust_text
 from joblib import Parallel, delayed
+from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrowPatch, Patch, Polygon
 from scipy import sparse
 from scipy.io import mmwrite
@@ -23,8 +25,6 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances, silhouette_score
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
-from typing import Literal
-
 
 from .utils import *
 
@@ -1798,7 +1798,7 @@ class COMPsc(Clustering):
 
         if True not in columns_bool and True not in features_bool:
             print("Missing 'names' and/or 'features'. Returning full dataset instead.")
-            
+
         if True in columns_bool:
             data = data.loc[:, columns_bool]
             metadata = metadata.loc[columns_bool, :]
@@ -1809,14 +1809,14 @@ class COMPsc(Clustering):
         not_in_features = [y for y in features if y not in features_names]
 
         if len(not_in_features) > 0:
-            print('\nThe following features were not found in data:')
-            print('\n'.join(not_in_features))
+            print("\nThe following features were not found in data:")
+            print("\n".join(not_in_features))
 
         not_in_names = [y for y in names if y not in columns_names]
 
         if len(not_in_names) > 0:
-            print('\nThe following names were not found in data:')
-            print('\n'.join(not_in_names))
+            print("\nThe following names were not found in data:")
+            print("\n".join(not_in_names))
 
         if inc_metadata:
             return data, metadata
@@ -2490,9 +2490,9 @@ class COMPsc(Clustering):
         def prepare_and_run_stat(choose, valid_group, min_exp, min_pct, n_proc):
 
             def safe_min_half(series):
-                filtered = series[(series > ((2**-1074)*2)) & (series.notna())]
+                filtered = series[(series > ((2**-1074) * 2)) & (series.notna())]
                 return filtered.min() / 2 if not filtered.empty else 0
-        
+
             tmp_dat = choose[choose["DEG"] == "target"]
             tmp_dat = tmp_dat.drop("DEG", axis=1)
 
@@ -2545,9 +2545,7 @@ class COMPsc(Clustering):
             valid = df["avg_valid"].where(
                 df["avg_valid"] != 0, df["avg_valid"] + cv_factor
             )
-            ctrl = df["avg_ctrl"].where(
-                df["avg_ctrl"] != 0, df["avg_ctrl"] + cv_factor
-            )
+            ctrl = df["avg_ctrl"].where(df["avg_ctrl"] != 0, df["avg_ctrl"] + cv_factor)
 
             df["FC"] = valid / ctrl
 
@@ -3413,7 +3411,7 @@ class COMPsc(Clustering):
         colors="viridis",
         hclust="complete",
         scale=False,
-        scale_axis: Literal['x', 'y'] = 'y',
+        scale_axis: Literal["x", "y"] = "y",
         img_width=3,
         img_high=5,
         label_size=6,
@@ -3523,7 +3521,7 @@ class COMPsc(Clustering):
         colors="viridis",
         hclust="complete",
         scale=False,
-        scale_axis: Literal['x', 'y'] = 'y',
+        scale_axis: Literal["x", "y"] = "y",
         img_width=3,
         img_high=5,
         label_size=6,
@@ -3562,7 +3560,7 @@ class COMPsc(Clustering):
             - 'y': Scales across columns (per sample / cell).
             - 'x': Scales across rows (per feature / gene).
             Only effective if `scale=True`.
-            
+
         colors : str, default='viridis'
             Colormap for expression values.
 
@@ -3654,8 +3652,8 @@ class COMPsc(Clustering):
             occurence_data=occ,
             features=None,
             metadata_list=None,
-            scale_axis = scale_axis,
-            scale = scale,
+            scale_axis=scale_axis,
+            scale=scale,
             colors=colors,
             hclust=hclust,
             img_width=img_width,
@@ -3711,7 +3709,7 @@ class COMPsc(Clustering):
         features: list | None = None,
         name_slot: str = "cell_names",
         scale=True,
-        scale_axis: Literal['x', 'y'] = 'y',
+        scale_axis: Literal["x", "y"] = "y",
         colors="viridis",
         hclust=None,
         img_width=15,
@@ -4308,7 +4306,6 @@ class COMPsc(Clustering):
 
         return fig
 
-
     def cell_regression(
         self,
         cell_x: str,
@@ -4316,118 +4313,118 @@ class COMPsc(Clustering):
         set_x: str | None = None,
         set_y: str | None = None,
         min_log=0.5,
-        n_max = 20,
+        n_max=20,
         min_exp=0.1,
         min_pct=0.5,
         n_proc=10,
-        min_esm = 0.5,
+        min_esm=0.5,
         p_val=0.05,
-        adj = True,
+        adj=True,
         image_width=12,
-        image_high=7
-        ):
+        image_high=7,
+    ):
         """
         Perform linear regression between two selected cell populations and identify
         significant and top-ranked differentially expressed genes.
-        
+
         The function compares the expression profiles of two selected cells or cell
         populations using linear regression. Each gene is represented as a point in
         the regression plot, with expression in `cell_x` on the X-axis and expression
         in `cell_y` on the Y-axis.
-        
+
         Differential expression statistics are calculated using `calc_DEG`. Genes are
         first filtered according to the minimum absolute log fold change, minimum
         absolute effect size (ESM), and statistical significance. Among the
         significant genes, up to `n_max` genes are selected within each `valid_group`,
         prioritizing genes with the largest standardized absolute regression residuals
         and absolute ESM values.
-        
+
         The regression plot uses three point categories:
         - gray: genes that are not statistically significant,
         - green: statistically significant genes that pass the DEG thresholds,
         - blue: top `n_max` genes selected within each `valid_group`.
-        
+
         The selected top genes are additionally annotated with their gene names.
         The plot also displays the fitted linear regression line, R-squared,
         p-value, and regression equation.
-        
+
         Parameters
         ----------
         cell_x : str
             Name of the first cell or cell population used as the X-axis.
-        
+
         cell_y : str
             Name of the second cell or cell population used as the Y-axis.
-        
+
         set_x : str or None
             Dataset or experimental set identifier corresponding to `cell_x`.
             Required when multiple datasets contain the same cell name. If None,
             the cell is selected only by its name.
-        
+
         set_y : str or None
             Dataset or experimental set identifier corresponding to `cell_y`.
             Required when multiple datasets contain the same cell name. If None,
             the cell is selected only by its name.
-        
+
         min_log : float, default=0.5
             Minimum absolute log fold change required for a gene to be considered
             for significant DEG selection.
-        
+
         n_max : int, default=20
             Maximum number of top genes selected from each `valid_group`.
             Genes are ranked primarily by standardized absolute regression residual
             and secondarily by absolute Effect Size - Cohen's d.
-        
+
         min_exp : float, default=0.1
             Minimum expression threshold passed to `calc_DEG`.
-        
+
         min_pct : float, default=0.5
             Minimum fraction of cells in which a gene must be expressed, passed to
             `calc_DEG`.
-        
+
         n_proc : int, default=10
             Number of parallel processes used by `calc_DEG`.
-        
+
         min_esm : float, default=0.5
             Minimum absolute ESM (effect size measure) required for DEG selection.
-        
+
         p_val : float, default=0.05
             Maximum allowed p-value for statistical significance. If `adj=True`,
             this threshold is applied to the adjusted p-value (`adj_pval`);
             otherwise, it is applied to the raw p-value (`p_val`).
-        
+
         adj : bool, default=True
             Whether to use the adjusted p-value (`adj_pval`) instead of the raw
             p-value (`p_val`) for statistical significance filtering.
-        
+
         image_width : int or float, default=12
             Width of the regression plot in inches.
-        
+
         image_high : int or float, default=7
             Height of the regression plot in inches.
-        
-        
-        
+
+
+
         Returns
         -------
         deg_stats : pandas.DataFrame
             DataFrame containing the DEG statistics after filtering by absolute
             log fold change, absolute ESM, and statistical significance.
-        
+
         fig : matplotlib.figure.Figure
             Matplotlib figure containing the regression plot, including expression
             points, regression line, regression statistics, and annotations for
             the selected top genes.
-        
+
         Raises
         ------
         ValueError
             If `cell_x` or `cell_y` is not found in the dataset.
-        
+
         ValueError
             If multiple columns correspond to the same cell name and the required
             dataset identifiers (`set_x` and/or `set_y`) were not provided.
-        
+
         Notes
         -----
         * The function calls `self.average()` before performing the analysis.
@@ -4442,8 +4439,8 @@ class COMPsc(Clustering):
         * The top genes are annotated on the regression plot.
         * The returned `deg_stats` contains the significant genes before the final
         `n_max` per-group selection.
-        
-        
+
+
         Examples
         --------
         > > > deg_stats, fig = obj.cell_regression(
@@ -4454,9 +4451,8 @@ class COMPsc(Clustering):
         > > > ...     p_val=0.05,
         > > > ...     n_max=20
         > > > ... )
-        > > > 
+        > > >
         """
-
 
         self.average()
 
@@ -4464,91 +4460,77 @@ class COMPsc(Clustering):
         data = self.agg_normalized_data
         data2 = self.normalized_data
         metadata2 = self.input_metadata
-        
 
         if set_x is not None and set_y is not None:
             data.columns = metadata["cell_names"] + " # " + metadata["sets"]
             data2.columns = metadata2["cell_names"] + " # " + metadata2["sets"]
             cell_x = cell_x + " # " + set_x
             cell_y = cell_y + " # " + set_y
-            
+
             deg_stats = calc_DEG(
                 data2,
                 metadata_list=None,
-                entities= {'cell_x':cell_x + " # " + set_x,
-                        'cell_y':cell_y + " # " + set_y},
+                entities={
+                    "cell_x": cell_x + " # " + set_x,
+                    "cell_y": cell_y + " # " + set_y,
+                },
                 sets=None,
                 min_exp=min_exp,
                 min_pct=min_pct,
                 n_proc=n_proc,
             )
-
 
         else:
             data.columns = metadata["cell_names"]
             data2.columns = metadata2["cell_names"]
-            
+
             deg_stats = calc_DEG(
                 data2,
                 metadata_list=None,
-                entities= {'cell_x':cell_x,
-                        'cell_y':cell_y},
+                entities={"cell_x": cell_x, "cell_y": cell_y},
                 sets=None,
                 min_exp=min_exp,
                 min_pct=min_pct,
                 n_proc=n_proc,
             )
 
-        
         # points
         x = data[cell_x]
         y = data[cell_y]
-        
+
         # regression
         slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-        
+
         # prediction
         y_pred = slope * x + intercept
-        
+
         # residuals
         residual = y - y_pred
-        
+
         # residuals for DEG
         deg_stats["residual"] = deg_stats["feature"].map(residual)
         deg_stats["residual_abs"] = deg_stats["residual"].abs()
         deg_stats["residual_std"] = deg_stats["residual"] / residual.std()
         deg_stats["residual_std_abs"] = deg_stats["residual_std"].abs()
-        deg_stats['esm_abs'] =  deg_stats['esm'].abs()
+        deg_stats["esm_abs"] = deg_stats["esm"].abs()
 
-        deg_stats = deg_stats[
-            deg_stats["log(FC)"].abs() >= min_log
-            ]      
-        
-        deg_stats = deg_stats[
-            deg_stats["esm_abs"] >= min_esm
-            ]      
+        deg_stats = deg_stats[deg_stats["log(FC)"].abs() >= min_log]
 
+        deg_stats = deg_stats[deg_stats["esm_abs"] >= min_esm]
 
         if adj:
-            
-            deg_stats = deg_stats[
-                deg_stats["adj_pval"] <= p_val
-                ]      
-        else:
-            deg_stats = deg_stats[
-                deg_stats["p_val"] <= p_val
-                ]   
-        
 
-        
+            deg_stats = deg_stats[deg_stats["adj_pval"] <= p_val]
+        else:
+            deg_stats = deg_stats[deg_stats["p_val"] <= p_val]
+
         deg_stats_n = (
             deg_stats.sort_values(
-                ["residual_std_abs","esm_abs"], ascending=[False, False]
+                ["residual_std_abs", "esm_abs"], ascending=[False, False]
             )
             .groupby("valid_group")
             .head(n_max)
         )
-        
 
         if not cell_x in data.columns:
             raise ValueError("'cell_x' value not in cell names!")
@@ -4567,207 +4549,158 @@ class COMPsc(Clustering):
                 f"'{cell_y}' occurs more than once. If you want to select a specific cell, "
                 f"please also provide the corresponding 'set_x' and 'set_y' values."
             )
-        
-        data["color"] = "gray"
-        
-        
-        data.loc[
-            data.index.isin(set(deg_stats["feature"])),
-            "color"
-        ] = "green"
-        
 
-        data.loc[
-            data.index.isin(set(deg_stats_n["feature"])),
-            "color"
-        ] = "blue"
-        
-    
-        color_order = {
-        "gray": 0,
-        "green": 1,
-        "blue": 2
-        }
-        
+        data["color"] = "gray"
+
+        data.loc[data.index.isin(set(deg_stats["feature"])), "color"] = "green"
+
+        data.loc[data.index.isin(set(deg_stats_n["feature"])), "color"] = "blue"
+
+        color_order = {"gray": 0, "green": 1, "blue": 2}
+
         data["color_order"] = data["color"].map(color_order)
-        
+
         data = data.sort_values("color_order")
-            
+
         fig, ax = plt.subplots(figsize=(image_width, image_high))
 
-        # kropki
+        # dots
         sns.scatterplot(
             x=cell_x,
             y=cell_y,
             data=data,
             hue="color",
-            palette={
-                
-                "blue": "blue",
-                "green": "green",
-                "gray": "gray"
-            },
+            palette={"blue": "blue", "green": "green", "gray": "gray"},
             legend=False,
-            ax=ax
+            ax=ax,
         )
-        
-        # tylko linia regresji
-        sns.regplot(
-            x=cell_x,
-            y=cell_y,
-            data=data,
-            scatter=False,
-            color="red",
-            ax=ax
-        )
-        
-        from matplotlib.lines import Line2D
+
+        # regression
+        sns.regplot(x=cell_x, y=cell_y, data=data, scatter=False, color="red", ax=ax)
 
         legend_elements = [
             Line2D(
-                [0], [0],
+                [0],
+                [0],
                 marker="o",
                 color="w",
                 markerfacecolor="gray",
                 markersize=7,
-                label="Not significant"
+                label="Not significant",
             ),
             Line2D(
-                [0], [0],
+                [0],
+                [0],
                 marker="o",
                 color="w",
                 markerfacecolor="blue",
                 markersize=7,
-                label=f"Top {n_max}"
+                label=f"Top {n_max}",
             ),
             Line2D(
-                [0], [0],
+                [0],
+                [0],
                 marker="o",
                 color="w",
                 markerfacecolor="green",
                 markersize=7,
-                label="Significant"
+                label="Significant",
             ),
-            Line2D(
-                [0], [0],
-                color="red",
-                linewidth=2,
-                label="Linear regression"
-            )
+            Line2D([0], [0], color="red", linewidth=2, label="Linear regression"),
         ]
-        
-        ax.legend(
-            handles=legend_elements,
-            loc="best",
-            frameon=False
-        )
-        
+
+        ax.legend(handles=legend_elements, loc="best", frameon=False)
+
         slope, intercept, r_value, p_value, _ = stats.linregress(
-            data[cell_x],
-            data[cell_y]
+            data[cell_x], data[cell_y]
         )
-        
+
         equation = "y = {:.2f}x + {:.2f}".format(slope, intercept)
-        
+
         ax.annotate(
             "R-squared = {:.2f}\nP-value = {:.2f}\n{}".format(
-                r_value**2,
-                p_value,
-                equation
+                r_value**2, p_value, equation
             ),
             xy=(0.05, 0.90),
             xycoords="axes fraction",
             fontsize=12,
         )
-        
+
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
-        
+
         # oznaczanie genów
         def annotate_outliers(x, y, features):
             texts = []
-        
+
             for i, (xi, yi) in enumerate(zip(x, y)):
                 if data.index[i] in features:
                     text = ax.text(xi, yi, data.index[i])
                     texts.append(text)
-        
+
             return texts
-        
+
         features = list(set(deg_stats_n["feature"]))
-        
-        texts = annotate_outliers(
-            data[cell_x],
-            data[cell_y],
-            features
-        )
-        
-        adjust_text(
-            texts,
-            arrowprops=dict(
-                arrowstyle="-",
-                color="gray",
-                alpha=0.5
-            )
-        )
-        
+
+        texts = annotate_outliers(data[cell_x], data[cell_y], features)
+
+        adjust_text(texts, arrowprops=dict(arrowstyle="-", color="gray", alpha=0.5))
 
         return deg_stats, fig
-
 
     def cell_genes_distribution(
         self,
         cells_names: list | None,
         cells_sets: list | None = None,
         image_width=10,
-        image_high=7
+        image_high=7,
     ):
         """
         Compare the distributions of the number of detected genes per cell across
         selected cell populations.
-        
+
         For each selected cell population, the function calculates the number of
         detected genes in each cell, defined as the number of genes with an expression
         value greater than zero. The resulting distributions are visualized as
         overlapping histograms, allowing the gene detection levels of different cell
         populations to be compared.
-        
+
         This analysis can be used as a quality-control step before comparing gene
         expression profiles or performing differential expression analysis. Similar
         distributions of detected genes per cell indicate comparable levels of gene
         detection across the selected populations, whereas substantial differences
         may indicate differences in sequencing depth, RNA content, or other technical
         factors.
-        
+
         Parameters
         ----------
         cells_names : list
             List of cell population or cluster names to be included in the analysis.
-        
+
         cells_sets : list or None
             Optional list of dataset or experimental set identifiers corresponding
             element-wise to `cells_names`. This is required when the same cell
             population name occurs in multiple datasets and a specific dataset
             needs to be selected.
-        
+
         image_width : int or float, default=10
             Width of the histogram figure in inches.
-        
+
         image_high : int or float, default=7
             Height of the histogram figure in inches.
-        
+
         Returns
         -------
         fig : matplotlib.figure.Figure
             Matplotlib figure containing overlapping histograms showing the
             distribution of the number of detected genes per cell for each selected
             cell population.
-        
+
         Raises
         ------
         ValueError
             If `cells_names` is None or empty.
-        
+
         Notes
         -----
         * A gene is considered detected when its expression value is greater than zero.
@@ -4782,26 +4715,23 @@ class COMPsc(Clustering):
         comparisons.
         """
 
-
         metadata = self.input_metadata
         data = self.normalized_data
-        
+
         if cells_names is None or len(cells_names) == 0:
             raise ValueError("No cells selected!")
-            
+
         if cells_sets is not None and len(cells_sets) == len(cells_names):
             data.columns = metadata["cell_names"] + " # " + metadata["sets"]
             full_cells = []
             for n in range(len(cells_names)):
                 full_cells.append(cells_names[n] + " # " + cells_sets[n])
-            
-            data = data.loc[:,full_cells]
+
+            data = data.loc[:, full_cells]
 
         else:
             data.columns = metadata["cell_names"]
-            data = data.loc[:,cells_names]
-
-
+            data = data.loc[:, cells_names]
 
         fig = plt.figure(figsize=(image_width, image_high))
 
@@ -4810,20 +4740,14 @@ class COMPsc(Clustering):
 
             counts = (data.loc[:, cols] > 0).sum(axis=0)
 
-            plt.hist(
-                counts,
-                bins=30,
-                alpha=0.5,
-                label=name
-            )
+            plt.hist(counts, bins=30, alpha=0.5, label=name)
 
         plt.xlabel("Number of detected genes per cell")
         plt.ylabel("Number of cells")
         plt.legend()
         plt.tight_layout()
-        
-        return fig
 
+        return fig
 
     def mm_cell_genes(
         self,
@@ -4831,55 +4755,55 @@ class COMPsc(Clustering):
         cells_sets: list | None,
         non_include_zeros: bool = True,
         image_width=7,
-        image_high=10
+        image_high=10,
     ):
         """
         Compare the mean and median gene expression across selected cell populations.
-        
+
         For each selected cell population, the function calculates the mean and median
         expression values across all genes and cells. By default, zero-expression
         values are excluded from the calculation, allowing the comparison to focus on
         genes with detected expression. When `non_include_zeros` is set to False, zero
         values are included in the calculation.
-        
+
         The resulting mean and median expression values are visualized as a grouped
         bar plot, with separate bars representing the mean and median for each cell
         population. This visualization can be used to assess differences in the overall
         expression level and distribution between selected cell populations.
-        
+
         Parameters
         ----------
         cells_names : list
             List of cell population or cluster names to be included in the analysis.
-        
+
         cells_sets : list or None
             Optional list of dataset or experimental set identifiers corresponding
             element-wise to `cells_names`. When provided and its length matches
             `cells_names`, cell populations are selected using both their population
             name and dataset identifier.
-        
+
         non_include_zeros : bool, default=True
             Whether to exclude zero-expression values before calculating the mean and
             median. If True, only non-zero expression values are used. If False, all
             expression values, including zeros, are used.
-        
+
         image_width : int or float, default=7
             Width of the figure in inches.
-        
+
         image_high : int or float, default=10
             Height of the figure in inches.
-        
+
         Returns
         -------
         fig : matplotlib.figure.Figure
             Matplotlib figure containing grouped bar plots showing the mean and median
             expression for each selected cell population.
-        
+
         Raises
         ------
         ValueError
             If `cells_names` is None or empty.
-        
+
         Notes
         -----
         * Expression values are obtained from `self.normalized_data`.
@@ -4897,25 +4821,23 @@ class COMPsc(Clustering):
 
         metadata = self.input_metadata
         data = self.normalized_data
-        
+
         if cells_names is None or len(cells_names) == 0:
             raise ValueError("No cells selected!")
-            
+
         if cells_sets is not None and len(cells_sets) == len(cells_names):
             data.columns = metadata["cell_names"] + " # " + metadata["sets"]
             full_cells = []
             for n in range(len(cells_names)):
                 full_cells.append(cells_names[n] + " # " + cells_sets[n])
-            
-            data = data.loc[:,full_cells]
+
+            data = data.loc[:, full_cells]
 
         else:
             data.columns = metadata["cell_names"]
-            data = data.loc[:,cells_names]
+            data = data.loc[:, cells_names]
 
-        
         groups = data.columns.unique()
-
 
         fig = plt.figure(figsize=(image_width, image_high))
 
@@ -4926,7 +4848,7 @@ class COMPsc(Clustering):
             cols = data.columns == name
 
             values = data.loc[:, cols].values.flatten()
-            
+
             if non_include_zeros:
                 values = values[values != 0]
 
@@ -4939,19 +4861,9 @@ class COMPsc(Clustering):
         x = np.arange(len(groups))
         width = 0.35
 
-        plt.bar(
-            x - width/2,
-            mean_expression.values,
-            width,
-            label="Mean"
-        )
+        plt.bar(x - width / 2, mean_expression.values, width, label="Mean")
 
-        plt.bar(
-            x + width/2,
-            median_expression.values,
-            width,
-            label="Median"
-        )
+        plt.bar(x + width / 2, median_expression.values, width, label="Median")
 
         plt.xlabel("Cell")
         plt.ylabel("Expression")
@@ -4960,7 +4872,6 @@ class COMPsc(Clustering):
 
         plt.tight_layout()
 
-        
         return fig
 
     def cell_dispersion(
@@ -4968,60 +4879,60 @@ class COMPsc(Clustering):
         cells_names: list | None,
         cells_sets: list | None,
         image_width=7,
-        image_high=10
+        image_high=10,
     ):
         """
         Assess the within-cluster dispersion of cell gene expression profiles.
-        
+
         For each selected cell population, the function calculates the centroid of
         the population as the mean expression profile across all cells in the cluster.
         The Euclidean distance between each individual cell and its corresponding
         cluster centroid is then calculated to quantify how much the cell's expression
         profile deviates from the average profile of the cluster.
-        
+
         The resulting distributions of distances are visualized using violin plots,
         with each violin representing one selected cell population. The distribution
         shows the degree of transcriptional heterogeneity within each cluster:
         smaller distances indicate cells with more similar expression profiles,
         whereas larger distances indicate greater within-cluster variability.
-        
+
         This analysis can be used to assess the internal consistency and transcriptional
         heterogeneity of cell populations before comparing their expression profiles
         between clusters.
-        
+
         Parameters
         ----------
         self : object
             self object containing the input metadata and normalized expression
             data.
-        
+
         cells_names : list
             List of cell population or cluster names to be included in the analysis.
-        
+
         cells_sets : list or None
             Optional list of dataset or experimental set identifiers corresponding
             element-wise to `cells_names`. When provided and its length matches
             `cells_names`, cell populations are selected using both their population
             name and dataset identifier.
-        
+
         image_width : int or float, default=7
             Width of the figure in inches.
-        
+
         image_high : int or float, default=10
             Height of the figure in inches.
-        
+
         Returns
         -------
         fig : matplotlib.figure.Figure
             Matplotlib figure containing violin plots showing the distribution of
             Euclidean distances between individual cells and their respective cluster
             centroids.
-        
+
         Raises
         ------
         ValueError
             If `cells_names` is None or empty.
-        
+
         Notes
         -----
         * Expression values are obtained from `self.normalized_data`.
@@ -5040,22 +4951,21 @@ class COMPsc(Clustering):
 
         metadata = self.input_metadata
         data = self.normalized_data
-        
+
         if cells_names is None or len(cells_names) == 0:
             raise ValueError("No cells selected!")
-            
+
         if cells_sets is not None and len(cells_sets) == len(cells_names):
             data.columns = metadata["cell_names"] + " # " + metadata["sets"]
             full_cells = []
             for n in range(len(cells_names)):
                 full_cells.append(cells_names[n] + " # " + cells_sets[n])
-            
-            data = data.loc[:,full_cells]
+
+            data = data.loc[:, full_cells]
 
         else:
             data.columns = metadata["cell_names"]
-            data = data.loc[:,cells_names]
-
+            data = data.loc[:, cells_names]
 
         fig = plt.figure(figsize=(image_width, image_high))
 
@@ -5067,26 +4977,17 @@ class COMPsc(Clustering):
 
             centroid = cells.mean(axis=1)
 
-            distances = np.sqrt(
-                ((cells.sub(centroid, axis=0)) ** 2).sum(axis=0)
-            )
+            distances = np.sqrt(((cells.sub(centroid, axis=0)) ** 2).sum(axis=0))
 
             for cell, distance in distances.items():
-                dispersion_long.append({
-                    "cluster": cluster,
-                    "cell": cell,
-                    "distance_to_centroid": distance
-                })
+                dispersion_long.append(
+                    {"cluster": cluster, "cell": cell, "distance_to_centroid": distance}
+                )
 
         dispersion_long = pd.DataFrame(dispersion_long)
 
-
-
         sns.violinplot(
-            data=dispersion_long,
-            x="cluster",
-            y="distance_to_centroid",
-            inner="box"
+            data=dispersion_long, x="cluster", y="distance_to_centroid", inner="box"
         )
 
         plt.ylabel("Distance from cluster centroid")
@@ -5094,6 +4995,4 @@ class COMPsc(Clustering):
         plt.xticks(rotation=45)
         plt.tight_layout()
 
-        
         return fig
-

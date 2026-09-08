@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Literal
 
 import matplotlib as mpl
 import matplotlib.patches as mpatches
@@ -14,8 +15,6 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.io import mmread
 from tqdm import tqdm
-from typing import Literal
-
 
 
 def load_sparse(path: str, name: str):
@@ -607,7 +606,7 @@ def features_dot(
     expression_data: pd.DataFrame,
     occurence_data: pd.DataFrame | None = None,
     scale: bool = False,
-    scale_axis: Literal['x', 'y'] = 'y',
+    scale_axis: Literal["x", "y"] = "y",
     features: list | None = None,
     metadata_list: list | None = None,
     colors: str = "viridis",
@@ -642,7 +641,7 @@ def features_dot(
 
     scale: bool, default False
         If True, expression_data (features) will be scaled (0–1) across the colums (sample) with Maximum Absolute Scaling method.
-        
+
     scale_axis : {'x', 'y'}, default 'y'
         The axis along which to scale the expression data to the [0, 1] range:
         - 'y': Scales across columns (per sample / cell).
@@ -709,11 +708,9 @@ def features_dot(
     - If `metadata_list` is given, groups are indicated with colors and
       dashed vertical separators.
     """
-    if scale and scale_axis not in ['x', 'X', 'y', 'Y']:
-        raise ValueError(
-            "Wrong axis to scale. scale_axis must be 'x' or 'y'."
-        )
-    
+    if scale and scale_axis not in ["x", "X", "y", "Y"]:
+        raise ValueError("Wrong axis to scale. scale_axis must be 'x' or 'y'.")
+
     scatter_df = expression_data.copy()
 
     metadata = {}
@@ -754,26 +751,33 @@ def features_dot(
     new_cols = make_unique_list(list(tmp_columns))
 
     scatter_df.columns = new_cols
-    
+
     # scaling
     if scale:
 
         legend_lab = "Scaled\n" + legend_lab
 
         column_max = scatter_df.max()
-        scatter_df = scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
-        scatter_df = pd.DataFrame(scatter_df, index=scatter_df.index, columns=scatter_df.columns)
-            
-        if scale_axis.upper() == 'X':
+        scatter_df = (
+            scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
+        )
+        scatter_df = pd.DataFrame(
+            scatter_df, index=scatter_df.index, columns=scatter_df.columns
+        )
+
+        if scale_axis.upper() == "X":
             scatter_df = scatter_df.T
-    
+
         column_max = scatter_df.max()
-        scatter_df = scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
-        scatter_df = pd.DataFrame(scatter_df, index=scatter_df.index, columns=scatter_df.columns)
-    
-        if scale_axis.upper() == 'X':
+        scatter_df = (
+            scatter_df.div(column_max).replace([np.inf, -np.inf], np.nan).fillna(0)
+        )
+        scatter_df = pd.DataFrame(
+            scatter_df, index=scatter_df.index, columns=scatter_df.columns
+        )
+
+        if scale_axis.upper() == "X":
             scatter_df = scatter_df.T
-            
 
     if hclust is not None and len(expression_data.index) != 1:
 
@@ -1094,7 +1098,7 @@ def calc_DEG(
     def prepare_and_run_stat(choose, valid_group, min_exp, min_pct, n_proc):
 
         def safe_min_half(series):
-            filtered = series[(series > ((2**-1074)*2)) & (series.notna())]
+            filtered = series[(series > ((2**-1074) * 2)) & (series.notna())]
             return filtered.min() / 2 if not filtered.empty else 0
 
         tmp_dat = choose[choose["DEG"] == "target"]
@@ -1135,7 +1139,7 @@ def calc_DEG(
             num_tests = len(df)
             df["adj_pval"] = np.minimum(
                 1, (df["p_val"] * num_tests) / np.arange(1, num_tests + 1)
-            )             
+            )
 
             valid_factor = safe_min_half(df["avg_valid"])
             ctrl_factor = safe_min_half(df["avg_ctrl"])
@@ -1151,9 +1155,7 @@ def calc_DEG(
             valid = df["avg_valid"].where(
                 df["avg_valid"] != 0, df["avg_valid"] + cv_factor
             )
-            ctrl = df["avg_ctrl"].where(
-                df["avg_ctrl"] != 0, df["avg_ctrl"] + cv_factor
-            )
+            ctrl = df["avg_ctrl"].where(df["avg_ctrl"] != 0, df["avg_ctrl"] + cv_factor)
 
             df["FC"] = valid / ctrl
 
