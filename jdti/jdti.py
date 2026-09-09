@@ -4604,7 +4604,7 @@ class COMPsc(Clustering):
                 color="w",
                 markerfacecolor="blue",
                 markersize=7,
-                label=f"Top {n_max}",
+                label="Top significant",
             ),
             Line2D(
                 [0],
