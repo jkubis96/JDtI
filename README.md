@@ -94,32 +94,32 @@ It is compatible with various sequencing approaches, including scRNA-seq and bul
     - [3.15. Analysis of cluster dispersion](#di14.2)
 
 
-    - [3.15. Clustering features estimation](#di15)
-    - [3.16. Performing PCA](#di16)
-    - [3.17. Knee plot of PC](#di17)
-    - [3.18. Harmonize data (Harmony)](#di18)
-    - [3.19. Perform UMAP](#di19)
-    - [3.20. Visualization of names / sets on UMAP reduced space](#di20)
-    - [3.21. Visualization of feature level on UMAP reduced space](#di21)
-    - [3.22. *De novo* clustering - Performing PCA](#di22)
-    - [3.23. *De novo* clustering - Knee plot of PC](#di23)
-    - [3.24. *De novo* clustering - Harmonize data (Harmony)](#di24)
-    - [3.25. *De novo* clustering - Find clusters on PC](#di25)
-    - [3.26. *De novo* clustering - Perform UMAP](#di26)
-    - [3.27. *De novo* clustering - Knee plot of UMAP](#di27)
-    - [3.28. *De novo* clustering - Find clusters on UMAP](#di28)
-    - [3.29. *De novo* clustering - Visualization of clusters on UMAP reduced space](#di29)
-    - [3.30. Differential expression analysis](#di30)
-    - [3.31. Volcano plot](#di31)
-    - [3.32. Dot plot](#di32)
-    - [3.33. Visualization of feature level on UMAP reduced space](#di33)
-    - [3.34. Sample / cell composition calculation](#di34)
-    - [3.35. Composition - pie plot](#di35)
-    - [3.36. Composition - bar plot](#di36)
-    - [3.37. Getting data](#di37)
-    - [3.38. Saving sparse data](#di38)
-    - [3.39. Saving project](#di39)
-    - [3.40. Loading project](#di40)
+    - [3.16. Clustering features estimation](#di15)
+    - [3.17. Performing PCA](#di16)
+    - [3.18. Knee plot of PC](#di17)
+    - [3.19. Harmonize data (Harmony)](#di18)
+    - [3.20. Perform UMAP](#di19)
+    - [3.21. Visualization of names / sets on UMAP reduced space](#di20)
+    - [3.22. Visualization of feature level on UMAP reduced space](#di21)
+    - [3.23. *De novo* clustering - Performing PCA](#di22)
+    - [3.24. *De novo* clustering - Knee plot of PC](#di23)
+    - [3.25. *De novo* clustering - Harmonize data (Harmony)](#di24)
+    - [3.26. *De novo* clustering - Find clusters on PC](#di25)
+    - [3.27. *De novo* clustering - Perform UMAP](#di26)
+    - [3.28. *De novo* clustering - Knee plot of UMAP](#di27)
+    - [3.29. *De novo* clustering - Find clusters on UMAP](#di28)
+    - [3.30. *De novo* clustering - Visualization of clusters on UMAP reduced space](#di29)
+    - [3.31. Differential expression analysis](#di30)
+    - [3.32. Volcano plot](#di31)
+    - [3.33. Dot plot](#di32)
+    - [3.34. Visualization of feature level on UMAP reduced space](#di33)
+    - [3.35. Sample / cell composition calculation](#di34)
+    - [3.36. Composition - pie plot](#di35)
+    - [3.37. Composition - bar plot](#di36)
+    - [3.38. Getting data](#di37)
+    - [3.39. Saving sparse data](#di38)
+    - [3.40. Saving project](#di39)
+    - [3.41. Loading project](#di40)
   - [4. Data subclustering](#ds)
     - [4.1. Loading class](#ds1)
     - [4.2. Initialize COMPsc class](#ds2)
@@ -720,7 +720,7 @@ fig3.savefig('int_sim_reg.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_sim_reg.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_sim_reg.jpeg?raw=true" alt="drawing" width="800" />
 </p>
 
 ##### 3.15. Analysis of cluster dispersion <a id="di14.2"></a>
@@ -739,7 +739,7 @@ fig3_1.savefig('dispersion.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/dispersion.jpg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/dispersion.jpg?raw=true" alt="drawing" width="450" />
 </p>
 
 
@@ -758,7 +758,7 @@ fig3_2.savefig('mean_median_genes.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/ngenes.jpg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/ngenes.jpg?raw=true" alt="drawing" width="450" />
 </p>
 
 **3.15.3 Genes distribution in selected clusters - histograme**
@@ -775,11 +775,11 @@ fig3_3.savefig('genes_distribution.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/hist_genes.jpg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/hist_genes.jpg?raw=true" alt="drawing" width="800" />
 </p>
 
  
-##### 3.15. Clustering features estimation <a id="di15"></a>
+##### 3.16. Clustering features estimation <a id="di15"></a>
 
 
 ```
@@ -792,7 +792,7 @@ jseq_object.clustering_features(name_slot = 'cell_names',
 ```
 
 
-##### 3.16. Performing PCA  <a id="di16"></a>
+##### 3.17. Performing PCA  <a id="di16"></a>
 
 ```
 fig4 = jseq_object.perform_PCA(pc_num = 50)
@@ -804,7 +804,7 @@ fig4.savefig('int_pca.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
-##### 3.17. Knee plot of PC  <a id="di17"></a>
+##### 3.18. Knee plot of PC  <a id="di17"></a>
 
 ```
 fig5 = jseq_object.knee_plot_PCA()
@@ -817,7 +817,7 @@ fig5.savefig('int_pca_knee.jpeg', dpi=300, bbox_inches='tight')
 </p>
 
 
-##### 3.18.  Harmonize data (Harmony)  <a id="di18"></a>
+##### 3.19.  Harmonize data (Harmony)  <a id="di18"></a>
 
 ```
 # if more than one dataset (provided in metadata) harmonization 
@@ -827,7 +827,7 @@ jseq_object.harmonize_sets()
 ```
 
 
-##### 3.19. Perform UMAP  <a id="di19"></a>
+##### 3.20. Perform UMAP  <a id="di19"></a>
 
 ```
 jseq_object.perform_UMAP(factorize=False, 
@@ -836,7 +836,7 @@ jseq_object.perform_UMAP(factorize=False,
                         harmonized = True)
 ```
 
-##### 3.20. Visualization of names / sets on UMAP reduced space  <a id="di20"></a>
+##### 3.21. Visualization of names / sets on UMAP reduced space  <a id="di20"></a>
 
 ```
 fig6 = jseq_object.UMAP_vis( 
@@ -874,7 +874,7 @@ fig7.savefig('int_umap_sets.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_sets.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
-##### 3.21. Visualization of feature level on UMAP reduced space  <a id="di21"></a>
+##### 3.22. Visualization of feature level on UMAP reduced space  <a id="di21"></a>
 
 
 ```
@@ -890,7 +890,7 @@ fig8 = jseq_object.UMAP_feature(
 fig8.savefig('int_umap_feature.jpeg', dpi=300, bbox_inches='tight')
 ```
 
-##### 3.22. *De novo* clustering - Performing PCA  <a id="di22"></a>
+##### 3.23. *De novo* clustering - Performing PCA  <a id="di22"></a>
 
 
 ```
@@ -902,7 +902,7 @@ fig9.savefig('int_pca_clusters.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca_clusters.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
-##### 3.23. *De novo* clustering - Knee plot of PC  <a id="di23"></a>
+##### 3.24. *De novo* clustering - Knee plot of PC  <a id="di23"></a>
 
 
 ```
@@ -915,7 +915,7 @@ fig10.savefig('int_pca_knee_clusters.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca_knee_clusters.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
-##### 3.24. *De novo* clustering - Harmonize data (Harmony)  <a id="di24"></a>
+##### 3.25. *De novo* clustering - Harmonize data (Harmony)  <a id="di24"></a>
 
 
 ```
@@ -925,7 +925,7 @@ fig10.savefig('int_pca_knee_clusters.jpeg', dpi=300, bbox_inches='tight')
 jseq_object.harmonize_sets()
 ```
 
-##### 3.25. *De novo* clustering - Find clusters on PC  <a id="di25"></a>
+##### 3.26. *De novo* clustering - Find clusters on PC  <a id="di25"></a>
 
 
 ```
@@ -941,7 +941,7 @@ fig11.savefig('int_pca_clusters_find.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca_clusters_find.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
-##### 3.26. *De novo* clustering - Perform UMAP  <a id="di26"></a>
+##### 3.27. *De novo* clustering - Perform UMAP  <a id="di26"></a>
 
 ```
 jseq_object.perform_UMAP(
@@ -951,7 +951,7 @@ jseq_object.perform_UMAP(
                 harmonized = True)
 ```
 
-##### 3.27. *De novo* clustering - Knee plot of UMAP  <a id="di27"></a>
+##### 3.28. *De novo* clustering - Knee plot of UMAP  <a id="di27"></a>
 
 ```
 fig12 = jseq_object.knee_plot_umap(eps = 0.5, min_samples = 10)
@@ -963,7 +963,7 @@ fig12.savefig('int_umap_knee.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_knee.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
-##### 3.28. *De novo* clustering - Find clusters on UMAP  <a id="di28"></a>
+##### 3.29. *De novo* clustering - Find clusters on UMAP  <a id="di28"></a>
 
 ```
 fig13 = jseq_object.find_clusters_UMAP(umap_n = 4,
@@ -978,7 +978,7 @@ fig13.savefig('int_umap_clusters.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_clusters.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
-##### 3.29. *De novo* clustering - Visualization of clusters on UMAP reduced space  <a id="di29"></a>
+##### 3.30. *De novo* clustering - Visualization of clusters on UMAP reduced space  <a id="di29"></a>
 
 
 ```
@@ -1017,7 +1017,7 @@ fig15.savefig('int_umap_clusters_get_clusters_sep_set_not.jpeg', dpi=300, bbox_i
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_clusters_get_clusters_sep_set_not.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
-##### 3.30. Differential expression analysis  <a id="di30"></a>
+##### 3.31. Differential expression analysis  <a id="di30"></a>
 
 
 
@@ -1056,7 +1056,7 @@ stats = jseq_object.statistic(cells=None, sets='All', min_exp=0, min_pct=0.25, n
     * **`log(FC)`** – *Log₂-transformed fold change*  
     * **`norm_diff`** – *Direct difference between the averaged* `valid_group` *value and the averaged value of the remaining groups*
 
-##### 3.31. Volcano plot  <a id="di31"></a>
+##### 3.32. Volcano plot  <a id="di31"></a>
 
 ```
 # select 'valid_group' for volcano plot create; this case 'set1' or 'set2' 
@@ -1083,7 +1083,7 @@ fig16.savefig('int_volcano.jpeg', dpi=300, bbox_inches='tight')
 
 
 
-##### 3.32. Dot plot  <a id="di32"></a>
+##### 3.33. Dot plot  <a id="di32"></a>
 
 ```
 stats_5 = stats.sort_values(['valid_group', 'esm', 'log(FC)'], ascending=[True, False, False]).groupby('valid_group').head(5)
@@ -1115,7 +1115,7 @@ fig17.savefig('int_dot_DEG.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_scatter_DEG.jpeg?raw=true" alt="drawing" width="900" />
 </p>
 
-##### 3.33. Visualization of feature level on UMAP reduced space  <a id="di33"></a>
+##### 3.34. Visualization of feature level on UMAP reduced space  <a id="di33"></a>
 
 ```
 fig18_1 = jseq_object.UMAP_feature(
@@ -1145,7 +1145,7 @@ fig18_2.savefig('int_umap_clusters_feature_001G158400.jpeg', dpi=300, bbox_inche
 </p>
 
 
-##### 3.34. Sample / cell composition calculation  <a id="di34"></a>
+##### 3.35. Sample / cell composition calculation  <a id="di34"></a>
 
 ```
 import re
@@ -1157,7 +1157,7 @@ jseq_object.data_composition(
                      )
 ```
 
-##### 3.35. Composition - pie plot  <a id="di35"></a>
+##### 3.36. Composition - pie plot  <a id="di35"></a>
 
 ```
 fig19 = jseq_object.composition_pie( 
@@ -1178,7 +1178,7 @@ fig19.savefig('int_composition_pie.jpeg', dpi=300, bbox_inches='tight')
 </p>
 
 
-##### 3.36. Composition - bar plot  <a id="di36"></a>
+##### 3.37. Composition - bar plot  <a id="di36"></a>
 
 ```
 fig20 = jseq_object.bar_composition( 
@@ -1197,7 +1197,7 @@ fig20.savefig('int_composition_bar.jpeg', dpi=300, bbox_inches='tight')
 <img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_composition_bar.jpeg?raw=true" alt="drawing" width="300" />
 </p>
 
-##### 3.37. Getting data  <a id="di37"></a>
+##### 3.38. Getting data  <a id="di37"></a>
 
 
 ```
@@ -1218,7 +1218,7 @@ dt = jseq_object.get_partial_data(
 # more in documentation
 ```
 
-##### 3.38. Saving sparse data  <a id="di38"></a>
+##### 3.39. Saving sparse data  <a id="di38"></a>
 
 ```
 # save data from slots in sparse matrix format
@@ -1230,7 +1230,7 @@ jseq_object.save_sparse(
 )
 ```
 
-##### 3.39. Saving project  <a id="di39"></a>
+##### 3.40. Saving project  <a id="di39"></a>
 
 ```
 # save whole project with analyses and results
@@ -1238,7 +1238,7 @@ jseq_object.save_sparse(
 jseq_object.save_project(name = 'tree')
 ```
 
-##### 3.40. Loading project  <a id="di40"></a>
+##### 3.41. Loading project  <a id="di40"></a>
 
 ```
 # load project with all attributes & methodes
