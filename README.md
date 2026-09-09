@@ -33,7 +33,7 @@ Despite this, it is also able to conduct DEG analysis between sets, selected cel
 Additionally, JDtI offers many functions for data visualization and processing within clean visual outputs, such as volcano plots, gene expression analysis of different data types, clustering, heatmaps, and more.
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/logo.png?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/logo.png?raw=true" alt="drawing" width="500" />
 </p>
 
 It is compatible with various sequencing approaches, including scRNA-seq and bulk RNA-seq, and supports interoperability with tools such as <em>Seurat</em>, <em>Scanpy</em>, and other bioinformatics frameworks using the 10x sparse matrix format as input. More details about the available functions can be found in the Documentation and Example Usage section on GitHub.
@@ -193,7 +193,7 @@ features = find_features(data, features =['KIT', 'MC1', 'EDNRB', 'PAX3'])
 * *Not found the MC1 feature name, so the potential names are provided*
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JDtI/refs/heads/0.2.8/fig/1_potential_names.bmp" alt="drawing" width="500" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JDtI/refs/heads/0.2.9/fig/1_potential_names.bmp" alt="drawing" width="500" />
 </p>
 
 ```
@@ -203,7 +203,7 @@ features = find_features(data, features =['KIT', 'MC1R', 'EDNRB', 'PAX3'])
 * *All feature names have been found*
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JDtI/refs/heads/0.2.8/fig/1_found_names.bmp" alt="drawing" width="300" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JDtI/refs/heads/0.2.9/fig/1_found_names.bmp" alt="drawing" width="300" />
 </p>
 
 
@@ -216,7 +216,7 @@ names = find_names(data, names = ['0', '1', '2','10', '1&'])
 * *As same as in case of 'Features finding'*
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JDtI/refs/heads/0.2.8/fig/1_names.bmp" alt="drawing" width="300" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JDtI/refs/heads/0.2.9/fig/1_names.bmp" alt="drawing" width="300" />
 </p>
 
 
@@ -290,7 +290,7 @@ fig.savefig('volcano.jpeg', dpi=300, bbox_inches='tight')
 * **Volcano plot** – *Visualization of differentially expressed genes (DEGs) between two groups*
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/volcano.jpeg?raw=true" alt="drawing" width="450" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/volcano.jpeg?raw=true" alt="drawing" width="450" />
 </p>
 
 ##### 1.8. Features visualization <a id="bf8"></a>
@@ -334,7 +334,7 @@ fig.savefig('dot.jpeg', dpi=300, bbox_inches='tight')
 
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/scatter.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/scatter.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 
@@ -356,7 +356,7 @@ fig.savefig('development.jpeg', dpi=300, bbox_inches='tight')
 
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/development.jpeg?raw=true" alt="drawing" width="400" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/development.jpeg?raw=true" alt="drawing" width="400" />
 </p>
 
 
@@ -405,7 +405,7 @@ fig1 = clusters.perform_PCA(pc_num=50, width=8, height=6)
 fig1.savefig('clus_PCA.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_PCA.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_PCA.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 2.5. Knee plot of PC  <a id="dc5"></a>
@@ -417,7 +417,7 @@ fig2.savefig('clus_PCA_knee.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_PCA_knee.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_PCA_knee.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 2.6. Harmonize data (Harmony)  <a id="dc6"></a>
@@ -439,7 +439,7 @@ fig3.savefig('clus_PCA_clusters.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_PCA_clusters.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_PCA_clusters.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 
@@ -461,7 +461,7 @@ fig4 = clusters.knee_plot_umap(eps=0.5, min_samples=10)
 fig4.savefig('clus_UMAP_knee.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_UMAP_knee.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_UMAP_knee.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 
@@ -481,7 +481,7 @@ fig5.savefig('clus_UMAP_clusters.jpeg', dpi=300, bbox_inches='tight')
 
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_UMAP_clusters.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_UMAP_clusters.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 2.11. Visualization of names on UMAP reduced space  <a id="dc11"></a>
@@ -493,7 +493,7 @@ fig6.savefig('clus_UMAP_names_vis.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_UMAP_names_vis.jpeg?raw=true" alt="drawing" width="900" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_UMAP_names_vis.jpeg?raw=true" alt="drawing" width="900" />
 </p>
 
 
@@ -505,7 +505,7 @@ fig7.savefig('clus_UMAP_clusters_vis.jpeg', dpi=300, bbox_inches='tight')
 
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_UMAP_clusters_vis.jpeg?raw=true" alt="drawing" width="700" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_UMAP_clusters_vis.jpeg?raw=true" alt="drawing" width="700" />
 </p>
 
 
@@ -521,7 +521,7 @@ fig8.savefig('clus_UMAP_features.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/clus_UMAP_features.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/clus_UMAP_features.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 
@@ -577,7 +577,7 @@ fig.savefig('int_hist_genes.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_hist_genes.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_hist_genes.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 
@@ -592,7 +592,7 @@ fig.savefig('int_hist_genes_reduced.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_hist_genes_reduced.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_hist_genes_reduced.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 
@@ -607,7 +607,7 @@ fig.savefig('int_hist_genes_reduced_names.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_hist_genes_reduced_names.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_hist_genes_reduced_names.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.8. Samples / cells amount visualisation <a id="di8"></a>
@@ -619,7 +619,7 @@ fig.savefig('int_hist_cell_names.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_hist_cell_names.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_hist_cell_names.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.9. Sample / cell amount threshold <a id="di9"></a>
@@ -633,7 +633,7 @@ fig.savefig('int_hist_cell_names_reduced.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_hist_cell_names_reduced.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_hist_cell_names_reduced.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.10. Calculation of differential markers for integration <a id="di10"></a>
@@ -667,7 +667,7 @@ fig1.savefig('int_sim_plot_top.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_sim_plot_top.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_sim_plot_top.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 ##### 3.13. Similarity visualisation (spatial distance) <a id="di13"></a>
@@ -693,7 +693,7 @@ fig2.savefig('int_sim_plot_map_top.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_sim_plot_map_top.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_sim_plot_map_top.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 ##### 3.14. Similarity visualisation (sample to sample) <a id="di14"></a>
@@ -720,7 +720,7 @@ fig3.savefig('int_sim_reg.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_sim_reg.jpeg?raw=true" alt="drawing" width="800" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_sim_reg.jpeg?raw=true" alt="drawing" width="800" />
 </p>
 
 ##### 3.15. Analysis of cluster dispersion <a id="di14.2"></a>
@@ -739,7 +739,7 @@ fig3_1.savefig('dispersion.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/dispersion.jpg?raw=true" alt="drawing" width="450" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/dispersion.jpg?raw=true" alt="drawing" width="450" />
 </p>
 
 
@@ -758,7 +758,7 @@ fig3_2.savefig('mean_median_genes.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/ngenes.jpg?raw=true" alt="drawing" width="450" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/ngenes.jpg?raw=true" alt="drawing" width="450" />
 </p>
 
 **3.15.3 Genes distribution in selected clusters - histograme**
@@ -775,7 +775,7 @@ fig3_3.savefig('genes_distribution.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/hist_genes.jpg?raw=true" alt="drawing" width="800" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/hist_genes.jpg?raw=true" alt="drawing" width="800" />
 </p>
 
  
@@ -801,7 +801,7 @@ fig4.savefig('int_pca.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_pca.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.18. Knee plot of PC  <a id="di17"></a>
@@ -813,7 +813,7 @@ fig5.savefig('int_pca_knee.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca_knee.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_pca_knee.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 
@@ -854,7 +854,7 @@ fig6.savefig('int_umap.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 ```
@@ -871,7 +871,7 @@ fig7 = jseq_object.UMAP_vis(
 fig7.savefig('int_umap_sets.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_sets.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap_sets.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 ##### 3.22. Visualization of feature level on UMAP reduced space  <a id="di21"></a>
@@ -899,7 +899,7 @@ fig9 = jseq_object.perform_PCA(pc_num = 50)
 fig9.savefig('int_pca_clusters.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca_clusters.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_pca_clusters.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.24. *De novo* clustering - Knee plot of PC  <a id="di23"></a>
@@ -912,7 +912,7 @@ fig10.savefig('int_pca_knee_clusters.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca_knee_clusters.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_pca_knee_clusters.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.25. *De novo* clustering - Harmonize data (Harmony)  <a id="di24"></a>
@@ -938,7 +938,7 @@ fig11 = jseq_object.find_clusters_PCA(
 fig11.savefig('int_pca_clusters_find.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_pca_clusters_find.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_pca_clusters_find.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 ##### 3.27. *De novo* clustering - Perform UMAP  <a id="di26"></a>
@@ -960,7 +960,7 @@ fig12.savefig('int_umap_knee.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_knee.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap_knee.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.29. *De novo* clustering - Find clusters on UMAP  <a id="di28"></a>
@@ -975,7 +975,7 @@ fig13 = jseq_object.find_clusters_UMAP(umap_n = 4,
 fig13.savefig('int_umap_clusters.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_clusters.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap_clusters.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 ##### 3.30. *De novo* clustering - Visualization of clusters on UMAP reduced space  <a id="di29"></a>
@@ -995,7 +995,7 @@ fig14 = jseq_object.UMAP_vis(
 fig14.savefig('int_umap_clusters_get_clusters_sep_set.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_clusters_get_clusters_sep_set.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap_clusters_get_clusters_sep_set.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ```
@@ -1014,7 +1014,7 @@ fig15.savefig('int_umap_clusters_get_clusters_sep_set_not.jpeg', dpi=300, bbox_i
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_clusters_get_clusters_sep_set_not.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap_clusters_get_clusters_sep_set_not.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 ##### 3.31. Differential expression analysis  <a id="di30"></a>
@@ -1076,7 +1076,7 @@ fig16.savefig('int_volcano.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_volcano.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_volcano.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 * **Volcano plot** – *Visualization of differentially expressed genes (DEGs) between two groups*
@@ -1112,7 +1112,7 @@ fig17.savefig('int_dot_DEG.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_scatter_DEG.jpeg?raw=true" alt="drawing" width="900" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_scatter_DEG.jpeg?raw=true" alt="drawing" width="900" />
 </p>
 
 ##### 3.34. Visualization of feature level on UMAP reduced space  <a id="di33"></a>
@@ -1127,7 +1127,7 @@ fig18_1.savefig('int_umap_clusters_feature_T011200.jpeg', dpi=300, bbox_inches='
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_clusters_feature_T011200.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap_clusters_feature_T011200.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 
@@ -1141,7 +1141,7 @@ fig18_2.savefig('int_umap_clusters_feature_001G158400.jpeg', dpi=300, bbox_inche
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_umap_clusters_feature_001G158400.jpeg?raw=true" alt="drawing" width="500" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_umap_clusters_feature_001G158400.jpeg?raw=true" alt="drawing" width="500" />
 </p>
 
 
@@ -1174,7 +1174,7 @@ fig19.savefig('int_composition_pie.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_composition_pie.jpeg?raw=true" alt="drawing" width="300" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_composition_pie.jpeg?raw=true" alt="drawing" width="300" />
 </p>
 
 
@@ -1194,7 +1194,7 @@ fig20.savefig('int_composition_bar.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/int_composition_bar.jpeg?raw=true" alt="drawing" width="300" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/int_composition_bar.jpeg?raw=true" alt="drawing" width="300" />
 </p>
 
 ##### 3.38. Getting data  <a id="di37"></a>
@@ -1312,7 +1312,7 @@ fig1.savefig('sub_umap_clust.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/sub_umap_clust.jpeg?raw=true" alt="drawing" width="600" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/sub_umap_clust.jpeg?raw=true" alt="drawing" width="600" />
 </p>
 
 
@@ -1333,7 +1333,7 @@ fig2.savefig('sub_dot_clust_genes.jpeg', dpi=300, bbox_inches='tight')
 ```
 
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/sub_scatter_clust_genes.jpeg?raw=true" alt="drawing" width="400" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/sub_scatter_clust_genes.jpeg?raw=true" alt="drawing" width="400" />
 </p>
 
 
@@ -1365,7 +1365,7 @@ fig3 = jseq_object.subcluster_features_dot(
 fig3.savefig('sub_dot_clust_genes_reduced.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/sub_scatter_clust_genes_reduced.jpeg?raw=true" alt="drawing" width="400" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/sub_scatter_clust_genes_reduced.jpeg?raw=true" alt="drawing" width="400" />
 </p>
 
 
@@ -1392,7 +1392,7 @@ fig4 = jseq_object.subcluster_DEG_dot(
 fig4.savefig('sub_dot_clust_genes_reduced_DEG.jpeg', dpi=300, bbox_inches='tight')
 ```
 <p align="center">
-<img  src="https://github.com/jkubis96/JDtI/blob/0.2.8/fig/sub_scatter_clust_genes_reduced_DEG.jpeg?raw=true" alt="drawing" width="400" />
+<img  src="https://github.com/jkubis96/JDtI/blob/0.2.9/fig/sub_scatter_clust_genes_reduced_DEG.jpeg?raw=true" alt="drawing" width="400" />
 </p>
 
 
