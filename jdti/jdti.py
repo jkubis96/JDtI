@@ -1114,6 +1114,15 @@ class COMPsc(Clustering):
     estimating_similarity(method='pearson', p_val=0.05, top_n=25)
         Computes pairwise correlation and Euclidean distance between aggregated samples.
 
+    cell_genes_distribution(cells_names, cells_sets=None, image_width=10, image_high=7)
+        Compares the distributions of detected genes per cell across selected cell populations using overlapping histograms.
+
+    mm_cell_genes(cells_names, cells_sets=None, non_include_zeros=True, image_width=7, image_high=10)
+        Calculates and visualizes the mean and median gene expression across selected cell populations as a grouped bar plot.
+
+    cell_dispersion(cells_names, cells_sets=None, image_width=7, image_high=10)
+        Assesses within-cluster transcriptional dispersion by calculating distances between individual cells and their cluster centroids, visualized via violin plots.
+
     similarity_plot(split_sets=True, set_info=True, cmap='seismic', width=12, height=10)
         Visualizes pairwise similarity as a dot plot with correlation as hue and scaled distance as point size.
 
