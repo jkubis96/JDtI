@@ -361,14 +361,21 @@ class Clustering:
         pca_df = pd.DataFrame(PCA)
         pca_df["Cluster"] = dbscan_labels
 
+        colors_1 = plt.cm.tab20b(np.linspace(0, 1, 20))
+        colors_2 = plt.cm.tab20c(np.linspace(0, 1, 20))
+        color_palette = np.vstack((colors_1, colors_2))
+
         fig = plt.figure(figsize=(width, height))
 
-        for cluster_id in sorted(pca_df["Cluster"].unique()):
+        clusters = sorted(pca_df["Cluster"].unique())
+
+        for idx, cluster_id in enumerate(clusters):
             cluster_data = pca_df[pca_df["Cluster"] == cluster_id]
             plt.scatter(
                 cluster_data["PC1"],
                 cluster_data["PC2"],
                 label=f"Cluster {cluster_id}",
+                color=color_palette[idx % len(color_palette)],
                 alpha=0.7,
             )
 
@@ -640,12 +647,20 @@ class Clustering:
 
         fig = plt.figure(figsize=(width, height))
 
-        for cluster_id in sorted(umap_df["Cluster"].unique()):
+        colors_1 = plt.cm.tab20b(np.linspace(0, 1, 20))
+        colors_2 = plt.cm.tab20c(np.linspace(0, 1, 20))
+        color_palette = np.vstack((colors_1, colors_2))
+
+        clusters = sorted(umap_df["Cluster"].unique())
+
+        for idx, cluster_id in enumerate(clusters):
             cluster_data = umap_df[umap_df["Cluster"] == cluster_id]
+
             plt.scatter(
                 cluster_data["UMAP1"],
                 cluster_data["UMAP2"],
                 label=f"Cluster {cluster_id}",
+                color=color_palette[idx % len(color_palette)],
                 alpha=0.7,
             )
 
@@ -745,9 +760,15 @@ class Clustering:
             for i, ds in enumerate(umap_df["dataset"].unique())
         }
 
+        colors_1 = plt.cm.tab20b(np.linspace(0, 1, 20))
+        colors_2 = plt.cm.tab20c(np.linspace(0, 1, 20))
+        color_palette = np.vstack((colors_1, colors_2))
+
         cord_list = []
 
-        for num, nam in zip(numeric_df["numeric_values"], numeric_df["names"]):
+        for idx, (num, nam) in enumerate(
+            zip(numeric_df["numeric_values"], numeric_df["names"])
+        ):
 
             cluster_data = umap_df[umap_df["numeric_values"] == num]
 
@@ -755,6 +776,7 @@ class Clustering:
                 cluster_data["UMAP1"],
                 cluster_data["UMAP2"],
                 label=f"{num} - {nam}",
+                color=color_palette[idx % len(color_palette)],
                 marker=marker_map[cluster_data["dataset"].iloc[0]],
                 alpha=0.6,
                 s=point_size,
