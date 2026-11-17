@@ -52,8 +52,11 @@ def load_sparse(path: str, name: str):
     require a large amount of memory for datasets with many cells and genes.
     """
 
-    data = mmread(os.path.join(path, "matrix.mtx"))
-    data = pd.DataFrame(data.todense())
+    data_sparse = mmread(os.path.join(path, "matrix.mtx")).astype(np.float32)
+    data_dense = data_sparse.todense()
+    del data_sparse
+    data = pd.DataFrame(data_dense)
+    del data_dense
     genes = pd.read_csv(os.path.join(path, "genes.tsv"), header=None, sep="\t")
     names = pd.read_csv(os.path.join(path, "barcodes.tsv"), header=None, sep="\t")
     data.columns = [str(x) for x in names[0]]
@@ -1557,3 +1560,31 @@ def adjust_cells_to_group_mean(data, data_avg, beta=0.2):
         ].to_numpy() + beta * centroid
 
     return df_adjusted
+
+
+def get_mixed_palette(n_vars):
+
+    tab20 = plt.cm.tab20(np.linspace(0, 1, 20))
+    tab20b = plt.cm.tab20b(np.linspace(0, 1, 20))
+    tab20c = plt.cm.tab20c(np.linspace(0, 1, 20))
+    
+    if n_vars <= 10:
+        return plt.cm.tab20(np.linspace(0, 1, 10))
+    
+    elif n_vars <= 20:
+        return plt.cm.tab20(np.linspace(0, 1, 20))
+        
+    elif n_vars <= 40:
+        combined = np.empty((40, 4))
+        combined[0::2] = tab20c   
+        combined[1::2] = tab20b  
+        return combined[:n_vars]
+        
+    else:
+        combined = np.empty((60, 4))
+        combined[0::3] = tab20  
+        combined[1::3] = tab20b 
+        combined[2::3] = tab20c  
+        
+        limit = min(n_vars, len(combined))
+        return combined[:limit]
