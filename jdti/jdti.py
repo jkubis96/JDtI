@@ -5,7 +5,9 @@ import re
 from typing import Literal
 
 import harmonypy as harmonize
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -164,13 +166,13 @@ class Clustering:
         """
 
         return cls(data, metadata)
-    
+
     def sort_data(
         self,
         value_to_sort: str,
         ascending: bool = True,
         sort_order: list | None = None,
-        ):
+    ):
         """
         Sort metadata and synchronize all associated data matrices and embeddings.
 
@@ -198,175 +200,194 @@ class Clustering:
             If `value_to_sort` does not exist in the metadata columns, or if
             `sort_order` does not match the unique values present in the column.
         """
-    
+
         # methode part for COMPsc project
-        if 'input_metadata' in self.__dict__.keys():
+        if "input_metadata" in self.__dict__.keys():
             if value_to_sort not in self.input_metadata.columns:
                 available_cols = list(self.input_metadata.columns)
                 raise ValueError(
                     f"Column '{value_to_sort}' not found in input_metadata. "
                     f"Available columns: {available_cols}"
                 )
-            
+
             # step 1
             sorting_id = np.arange(len(self.input_metadata))
-            self.input_metadata['sorting_id'] = sorting_id
-            
+            self.input_metadata["sorting_id"] = sorting_id
+
             if self.normalized_data is not None:
-                self.normalized_data.columns = self.input_metadata['sorting_id']
-            
+                self.normalized_data.columns = self.input_metadata["sorting_id"]
+
             if self.input_data is not None:
-                self.input_data.columns = self.input_metadata['sorting_id']
-            
-            
+                self.input_data.columns = self.input_metadata["sorting_id"]
+
             if sort_order is not None and len(sort_order) > 0:
                 unique_vals = set(self.input_metadata[value_to_sort].dropna())
-                if set(sort_order) == unique_vals and len(sort_order) == len(unique_vals):
+                if set(sort_order) == unique_vals and len(sort_order) == len(
+                    unique_vals
+                ):
                     self.input_metadata[value_to_sort] = pd.Categorical(
                         self.input_metadata[value_to_sort],
                         categories=sort_order,
-                        ordered=True
+                        ordered=True,
                     )
                     self.input_metadata = self.input_metadata.sort_values(
                         value_to_sort, ascending=ascending
-                    ).reset_index(drop = True)
+                    ).reset_index(drop=True)
                 else:
-                    raise ValueError("Sort order list does not match the unique values in the data.")
+                    raise ValueError(
+                        "Sort order list does not match the unique values in the data."
+                    )
             else:
                 self.input_metadata = self.input_metadata.sort_values(
                     value_to_sort, ascending=ascending
-                ).reset_index(drop = True)
-            
-            new_order = self.input_metadata['sorting_id'].values
-            
+                ).reset_index(drop=True)
+
+            new_order = self.input_metadata["sorting_id"].values
+
             if self.normalized_data is not None:
                 self.normalized_data = self.normalized_data.iloc[:, new_order]
-                self.normalized_data.columns = self.input_metadata['cell_names']
+                self.normalized_data.columns = self.input_metadata["cell_names"]
 
-            
             if self.input_data is not None:
                 self.input_data = self.input_data.iloc[:, new_order]
-                self.input_data.columns = self.input_metadata['cell_names']
+                self.input_data.columns = self.input_metadata["cell_names"]
 
-            
-            self.input_metadata.drop(columns=['sorting_id'], inplace=True)
-            self.input_metadata[value_to_sort] = self.input_metadata[value_to_sort].astype(str)
-
+            self.input_metadata.drop(columns=["sorting_id"], inplace=True)
+            self.input_metadata[value_to_sort] = self.input_metadata[
+                value_to_sort
+            ].astype(str)
 
             # step 2
             if self.agg_metadata is not None:
                 sorting_id = np.arange(len(self.agg_metadata))
-                self.agg_metadata['sorting_id'] = sorting_id
-                
+                self.agg_metadata["sorting_id"] = sorting_id
+
                 if self.agg_normalized_data is not None:
-                    self.agg_normalized_data.columns = self.agg_metadata['sorting_id']
-                
-                
+                    self.agg_normalized_data.columns = self.agg_metadata["sorting_id"]
+
                 if sort_order is not None and len(sort_order) > 0:
                     unique_vals = set(self.agg_metadata[value_to_sort].dropna())
-                    if set(sort_order) == unique_vals and len(sort_order) == len(unique_vals):
+                    if set(sort_order) == unique_vals and len(sort_order) == len(
+                        unique_vals
+                    ):
                         self.agg_metadata[value_to_sort] = pd.Categorical(
                             self.agg_metadata[value_to_sort],
                             categories=sort_order,
-                            ordered=True
+                            ordered=True,
                         )
                         self.agg_metadata = self.agg_metadata.sort_values(
                             value_to_sort, ascending=ascending
-                        ).reset_index(drop = True)
+                        ).reset_index(drop=True)
                     else:
-                        raise ValueError("Sort order list does not match the unique values in the data.")
+                        raise ValueError(
+                            "Sort order list does not match the unique values in the data."
+                        )
                 else:
                     self.agg_metadata = self.agg_metadata.sort_values(
                         value_to_sort, ascending=ascending
-                    ).reset_index(drop = True)
-                
-                new_order = self.agg_metadata['sorting_id'].values
-                
-                if self.agg_normalized_data is not None:
-                    self.agg_normalized_data = self.agg_normalized_data.iloc[:, new_order]
-                    self.agg_normalized_data.columns = self.agg_metadata['cell_names']
-                
-                self.agg_metadata.drop(columns=['sorting_id'], inplace=True)
-                self.agg_metadata[value_to_sort] = self.agg_metadata[value_to_sort].astype(str)
+                    ).reset_index(drop=True)
 
-            
-        
+                new_order = self.agg_metadata["sorting_id"].values
+
+                if self.agg_normalized_data is not None:
+                    self.agg_normalized_data = self.agg_normalized_data.iloc[
+                        :, new_order
+                    ]
+                    self.agg_normalized_data.columns = self.agg_metadata["cell_names"]
+
+                self.agg_metadata.drop(columns=["sorting_id"], inplace=True)
+                self.agg_metadata[value_to_sort] = self.agg_metadata[
+                    value_to_sort
+                ].astype(str)
+
         # method for Clustering
-        
-        if 'clustering_metadata' in self.__dict__.keys():
+
+        if "clustering_metadata" in self.__dict__.keys():
             if value_to_sort not in self.clustering_metadata.columns:
                 available_cols = list(self.clustering_metadata.columns)
                 raise ValueError(
                     f"Column '{value_to_sort}' not found in clustering_metadata. "
                     f"Available columns: {available_cols}"
                 )
-            
+
             # step 1
             sorting_id = np.arange(len(self.clustering_metadata))
-            self.clustering_metadata['sorting_id'] = sorting_id
-                
-                
-            if self.clustering_data is not None:
-                self.clustering_data.columns = self.clustering_metadata['sorting_id']
-                
-            if self.pca is not None:
+            self.clustering_metadata["sorting_id"] = sorting_id
+
+            if (
+                "clustering_data" in self.__dict__.keys()
+                and self.clustering_data is not None
+            ):
+                self.clustering_data.columns = self.clustering_metadata["sorting_id"]
+
+            if "pca" in self.__dict__.keys() and self.pca is not None:
                 tmp_pca = self.pca
-                tmp_pca.index = self.clustering_metadata['sorting_id']
-            
-            if self.harmonized_pca is not None:
+                tmp_pca.index = self.clustering_metadata["sorting_id"]
+
+            if (
+                "harmonized_pca" in self.__dict__.keys()
+                and self.harmonized_pca is not None
+            ):
                 tmp_pca_harmonize = self.harmonized_pca
-                tmp_pca_harmonize.index = self.clustering_metadata['sorting_id']
-                
-            if self.umap is not None:
+                tmp_pca_harmonize.index = self.clustering_metadata["sorting_id"]
+
+            if "umap" in self.__dict__.keys() and self.umap is not None:
                 tmp_umap = self.umap
-                tmp_umap.index = self.clustering_metadata['sorting_id']
-                
-            
+                tmp_umap.index = self.clustering_metadata["sorting_id"]
+
             if sort_order is not None and len(sort_order) > 0:
                 unique_vals = set(self.clustering_metadata[value_to_sort].dropna())
-                if set(sort_order) == unique_vals and len(sort_order) == len(unique_vals):
+                if set(sort_order) == unique_vals and len(sort_order) == len(
+                    unique_vals
+                ):
                     self.clustering_metadata[value_to_sort] = pd.Categorical(
                         self.clustering_metadata[value_to_sort],
                         categories=sort_order,
-                        ordered=True
+                        ordered=True,
                     )
                     self.clustering_metadata = self.clustering_metadata.sort_values(
                         value_to_sort, ascending=ascending
-                    ).reset_index(drop = True)
+                    ).reset_index(drop=True)
                 else:
-                    raise ValueError("Sort order list does not match the unique values in the data.")
+                    raise ValueError(
+                        "Sort order list does not match the unique values in the data."
+                    )
             else:
                 self.clustering_metadata = self.clustering_metadata.sort_values(
                     value_to_sort, ascending=ascending
-                ).reset_index(drop = True)
-            
-            new_order = self.clustering_metadata['sorting_id'].values
-            
-            
-            if self.clustering_data is not None:
+                ).reset_index(drop=True)
+
+            new_order = self.clustering_metadata["sorting_id"].values
+
+            if (
+                "clustering_data" in self.__dict__.keys()
+                and self.clustering_data is not None
+            ):
                 self.clustering_data = self.clustering_data.iloc[:, new_order]
-                self.clustering_data.columns = self.clustering_metadata['cell_names']
-            
-            if self.pca is not None:
-                tmp_pca =  tmp_pca.loc[new_order,:]
+                self.clustering_data.columns = self.clustering_metadata["cell_names"]
+
+            if "pca" in self.__dict__.keys() and self.pca is not None:
+                tmp_pca = tmp_pca.loc[new_order, :]
                 self.pca = tmp_pca.reset_index(drop=True)
                 del tmp_pca
-            
-            if self.harmonized_pca is not None:
-                tmp_pca_harmonize =  tmp_pca_harmonize.loc[new_order,:]
+
+            if (
+                "harmonized_pca" in self.__dict__.keys()
+                and self.harmonized_pca is not None
+            ):
+                tmp_pca_harmonize = tmp_pca_harmonize.loc[new_order, :]
                 self.harmonized_pca = tmp_pca_harmonize.reset_index(drop=True)
                 del tmp_pca_harmonize
-                
-            if self.umap is not None:
-                tmp_umap =  tmp_umap.loc[new_order,:]
+
+            if "umap" in self.__dict__.keys() and self.umap is not None:
+                tmp_umap = tmp_umap.loc[new_order, :]
                 self.umap = tmp_umap.reset_index(drop=True)
                 del tmp_umap
-                
-            self.clustering_metadata.drop(columns=['sorting_id'], inplace=True)
-            self.clustering_metadata[value_to_sort] = self.clustering_metadata[value_to_sort].astype(str)
 
-
-                
+            self.clustering_metadata.drop(columns=["sorting_id"], inplace=True)
+            self.clustering_metadata[value_to_sort] = self.clustering_metadata[
+                value_to_sort
+            ].astype(str)
 
     def harmonize_sets(self, batch_col: str = "sets"):
         """
@@ -890,7 +911,8 @@ class Clustering:
         inc_num: bool = True,
         inc_bbox: bool = True,
         size_sort: bool = True,
-        grid: bool = True
+        grid: bool = False,
+        rasterized: bool = True,
     ):
         """
         Visualize UMAP embeddings with sample labels based on specyfic metadata slot.
@@ -920,17 +942,22 @@ class Clustering:
 
         inc_num : bool, default True
             If True, annotate points with numeric labels.
-            
+
         inc_bbox : bool, default True
             If True, annotate points with a background box (bbox).
-            
+
         size_sort : bool, default=True
             If True, cluster names are sorted in descending order by cluster size.
              If False, cluster names follow the order of their first appearance in `names_slot`.
-            
-        grid : bool, default True
+
+        grid : bool, default False
             If True, the plot grid will be visible.
-            
+
+        rasterized : bool, default True
+            If True, rasterizes scatter/point collections when saving vector
+            formats (such as SVG or PDF) to keep file sizes small for large
+            datasets while keeping text, labels, axes, and legends as crisp vectors.
+
 
         Returns
         -------
@@ -940,8 +967,6 @@ class Clustering:
 
         umap_df = self.umap.iloc[:, 0:2].copy()
         umap_df["names"] = list(self.clustering_metadata[names_slot])
-        
-     
 
         if set_sep:
 
@@ -956,28 +981,25 @@ class Clustering:
         umap_df["tmp_nam"] = list(umap_df["names"] + umap_df["dataset"])
 
         umap_df["count"] = umap_df["tmp_nam"].map(umap_df["tmp_nam"].value_counts())
-        
-        
+
         queue = pd.unique(umap_df["names"])
-        
-        umap_df['names'] = pd.Categorical(
-            umap_df['names'], 
-            categories=queue, 
-            ordered=True
+
+        umap_df["names"] = pd.Categorical(
+            umap_df["names"], categories=queue, ordered=True
         )
-        
-        umap_df = umap_df.sort_values('names').reset_index(drop = True)
-        
-        umap_df['id_vec'] = pd.factorize(umap_df['names'])[0]
-        
+
+        umap_df = umap_df.sort_values("names").reset_index(drop=True)
+
+        umap_df["id_vec"] = pd.factorize(umap_df["names"])[0]
 
         numeric_df = (
             pd.DataFrame(umap_df[["count", "tmp_nam", "names", "id_vec"]].copy())
             .drop_duplicates()
             .sort_values("count", ascending=False)
         )
+
         numeric_df["numeric_values"] = range(0, numeric_df.shape[0])
-        
+
         if size_sort:
             numeric_df["id_vec"] = numeric_df["numeric_values"]
 
@@ -993,22 +1015,31 @@ class Clustering:
             for i, ds in enumerate(umap_df["dataset"].unique())
         }
 
-        color_palette = get_mixed_palette(len(numeric_df["names"]))
+        color_palette = get_mixed_palette(len(numeric_df["tmp_nam"]))
 
         cord_list = []
-        
-        numeric_df = numeric_df.reset_index(drop = True)
+
+        numeric_df = numeric_df.reset_index(drop=True)
+
+        id_counts = numeric_df.groupby("id_vec")["id_vec"].transform("count")
+        id_cum = numeric_df.groupby("id_vec").cumcount() + 1
+
+        numeric_df["id_vec"] = np.where(
+            id_counts > 1,
+            numeric_df["id_vec"].astype(str) + "." + id_cum.astype(str),
+            numeric_df["id_vec"].astype(str),
+        )
 
         for idx, (num, nam) in enumerate(
             zip(numeric_df["numeric_values"], numeric_df["names"])
         ):
 
             cluster_data = umap_df[umap_df["numeric_values"] == num]
-            
-            
+
             rest_data = umap_df[umap_df["numeric_values"] != num]
 
-            
+            current_size = max(point_size, 0.25)
+
             ax.scatter(
                 cluster_data["UMAP1"],
                 cluster_data["UMAP2"],
@@ -1016,49 +1047,49 @@ class Clustering:
                 color=color_palette[idx % len(color_palette)],
                 marker=marker_map[cluster_data["dataset"].iloc[0]],
                 alpha=0.6,
-                s=point_size/10,
+                s=current_size,
+                rasterized=rasterized,
             )
 
             coords = np.round(cluster_data[["UMAP1", "UMAP2"]].values, decimals=2)
             rest_coords = np.round(rest_data[["UMAP1", "UMAP2"]].values, decimals=2)
-            
-            
+
             coords_tuples = set(map(tuple, rest_coords))
             should_keep = [tuple(pt) not in coords_tuples for pt in coords]
 
             coords = coords[should_keep]
 
-                        
             if len(coords) == 0:
                 coords = cluster_data[["UMAP1", "UMAP2"]].values
-
 
             if len(coords) > 0:
                 mean_x = np.mean(coords[:, 0])
                 mean_y = np.mean(coords[:, 1])
-            
+
                 q1 = coords[(coords[:, 0] >= mean_x) & (coords[:, 1] >= mean_y)]
                 q2 = coords[(coords[:, 0] < mean_x) & (coords[:, 1] >= mean_y)]
                 q3 = coords[(coords[:, 0] < mean_x) & (coords[:, 1] < mean_y)]
                 q4 = coords[(coords[:, 0] >= mean_x) & (coords[:, 1] < mean_y)]
-            
+
                 quadrants = [q for q in [q1, q2, q3, q4] if len(q) > 0]
-            
+
                 if quadrants:
                     quadrants.sort(key=len, reverse=True)
-                    
+
                     top1 = quadrants[0]
                     center1 = np.mean(top1, axis=0)
-                    
+
                     if len(quadrants) > 1:
                         top2 = quadrants[1]
                         center2 = np.mean(top2, axis=0)
-                        
+
                         dist_between_tops = np.linalg.norm(center1 - center2)
-                        
-                        cluster_spread = np.mean(np.linalg.norm(coords - [mean_x, mean_y], axis=1))
+
+                        cluster_spread = np.mean(
+                            np.linalg.norm(coords - [mean_x, mean_y], axis=1)
+                        )
                         threshold = cluster_spread * 0.6
-                        
+
                         if dist_between_tops < threshold:
                             combined_tops = np.vstack([top1, top2])
                             center_point = np.mean(combined_tops, axis=0)
@@ -1068,19 +1099,18 @@ class Clustering:
                         center_point = center1
                 else:
                     center_point = np.array([mean_x, mean_y])
-                    
+
                 cluster_median = np.median(coords, axis=0)
-                alpha = 0.5  
+                alpha = 0.5
                 center_point = (1 - alpha) * center_point + alpha * cluster_median
-            
+
             else:
                 center_point = np.array([0, 0])
-            
+
             cord_list.append(center_point)
-                        
-    
+
         if inc_num:
-            
+
             bbox_props = (
                 dict(
                     boxstyle="round,pad=0.1",
@@ -1091,54 +1121,87 @@ class Clustering:
                 if inc_bbox
                 else None
             )
-            
-            texts = []
-            for (x, y), num in zip(cord_list, numeric_df["id_vec"]):
-                texts.append(
-                    ax.text(
-                        x,
-                        y,
-                        str(num),
-                        ha="center",
-                        va="center",
-                        fontsize=font_size,
-                        color="black",
-                        bbox=bbox_props
-                    )
-                )
 
-            adjust_text(texts, arrowprops=dict(arrowstyle="-", color="gray", lw=0.5))
+            texts = []
+            repeat_lab = []
+            for (x, y), num in zip(cord_list, numeric_df["id_vec"]):
+                if num not in repeat_lab:
+                    texts.append(
+                        ax.text(
+                            x,
+                            y,
+                            str(num),
+                            ha="center",
+                            va="center",
+                            fontsize=font_size,
+                            color="black",
+                            bbox=bbox_props,
+                        )
+                    )
+                    repeat_lab.append(num)
+
+            adjust_text(
+                texts,
+                arrowprops=dict(arrowstyle="-", color="gray", lw=0.5),
+                force_text=(1.2, 1.2),
+                force_points=(1.0, 1.0),
+                expand_text=(1.3, 1.3),
+                expand_points=(1.3, 1.3),
+                lim=500,
+            )
 
         ax.set_xlabel("UMAP 1")
         ax.set_ylabel("UMAP 2")
-        
-        ax.grid(False)
-        
+
+        ax.grid(grid)
 
         handles, labels = ax.get_legend_handles_labels()
 
-        sorted_pairs = sorted(
-            zip(handles, labels), 
-            key=lambda x: int(x[1].split(" - ")[0])
-        )
-        
-        sorted_handles, sorted_labels = zip(*sorted_pairs)
-        
-        if not inc_num:
+        def sort_key(item):
+            num_str = item[1].split(" - ")[0]
+            parts = num_str.split(".")
+            main_num = int(parts[0])
+            sub_num = int(parts[1]) if len(parts) > 1 else 0
+            return (main_num, sub_num)
 
+        sorted_pairs = sorted(zip(handles, labels), key=sort_key)
+        sorted_handles, sorted_labels = zip(*sorted_pairs)
+
+        if not inc_num:
             sorted_labels = [lbl.split(" - ", 1)[1] for lbl in sorted_labels]
-        
+
+        unique_datasets = umap_df["dataset"].unique()
+        dataset_handles = list(sorted_handles)
+        dataset_labels = list(sorted_labels)
+
+        if len(unique_datasets) > 1:
+            for ds in unique_datasets:
+                proxy_marker = Line2D(
+                    [0],
+                    [0],
+                    marker=marker_map[ds],
+                    color="w",
+                    markerfacecolor="gray",
+                    markeredgecolor="black",
+                    markersize=current_size * 2,
+                    linestyle="None",
+                    label=f"Set: {ds}",
+                )
+
+                dataset_handles.append(proxy_marker)
+                dataset_labels.append(f"Data: {ds}")
+
         ax.legend(
-            sorted_handles,
-            sorted_labels,
-            title="Clusters",
+            dataset_handles,
+            dataset_labels,
+            title="",
             loc="center left",
             bbox_to_anchor=(1.05, 0.5),
             ncol=legend_split_col,
-            markerscale=20,
+            markerscale=15,
         )
 
-        ax.grid(grid, which='both')
+        ax.grid(grid, which="both")
 
         plt.tight_layout()
 
@@ -1153,6 +1216,8 @@ class Clustering:
         width: int = 8,
         height: int = 6,
         palette="light",
+        grid: bool = False,
+        rasterized: bool = True,
     ):
         """
         Visualize UMAP embedding with expression levels of a selected feature.
@@ -1183,12 +1248,20 @@ class Clustering:
         height : int, default 6
             Height of the matplotlib figure.
 
+        grid : bool, default False
+            If True, the plot grid will be visible.
+
         palette : str, default 'light'
             Color palette for expression visualization. Options are:
             - 'light'
             - 'dark'
             - 'green'
             - 'gray'
+
+        rasterized : bool, default True
+            If True, rasterizes scatter/point collections when saving vector
+            formats (such as SVG or PDF) to keep file sizes small for large
+            datasets while keeping text, labels, axes, and legends as crisp vectors.
 
         Returns
         -------
@@ -1199,12 +1272,12 @@ class Clustering:
         umap_df = self.umap.iloc[:, 0:2].copy()
 
         if features_data is None:
-
             features_data = self.clustering_data
 
         if features_data.shape[1] != umap_df.shape[0]:
             raise ValueError(
-                "Imputed 'features_data' shape does not match the number of UMAP cells"
+                "Imputed 'features_data' shape does not match the number of UMAP"
+                " cells"
             )
 
         blist = [
@@ -1223,53 +1296,101 @@ class Clustering:
 
         umap_df = umap_df.sort_values("feature", ascending=True)
 
-        import matplotlib.colors as mcolors
+        vals = umap_df["feature"].to_numpy(dtype=float)
+        vmin, vmax = vals.min(), vals.max()
 
-        if palette == "light":
-            palette = px.colors.sequential.Sunsetdark
+        if vmax > vmin:
+            norm_vals = (vals - vmin) / (vmax - vmin)
+        else:
+            norm_vals = np.ones_like(vals)
 
-        elif palette == "dark":
-            palette = px.colors.sequential.thermal
+        min_scale = 0.1
+        sizes = point_size * (min_scale + (1.0 - min_scale) * norm_vals)
 
-        elif palette == "green":
-            palette = px.colors.sequential.Aggrnyl
+        def px_to_rgb01(px_seq):
+            out = []
+            for c in px_seq:
+                rgb_255 = px.colors.unlabel_rgb(c)
+                out.append(tuple(v / 255.0 for v in rgb_255))
+            return out
 
-        elif palette == "gray":
-            palette = px.colors.sequential.gray
-            palette = palette[::-1]
+        def sample_colors(px_seq, n_colors):
+            rgb_seq = px_to_rgb01(px_seq)
+            if n_colors <= 1:
+                return rgb_seq[:n_colors]
+            idxs = np.linspace(0, len(rgb_seq) - 1, n_colors).round().astype(int)
+            return [rgb_seq[i] for i in idxs]
+
+        n_groups = len(px.colors.sequential.Sunsetdark)
+
+        norm = None
+
+        if palette in ("gray-red", "gray-blue"):
+            base_px = (
+                px.colors.sequential.Reds
+                if palette == "gray-red"
+                else px.colors.sequential.Blues
+            )
+            grad_colors = sample_colors(base_px[3:], max(n_groups - 1, 1))
+            gray_rgb = (0.72, 0.72, 0.72)
+
+            if vmax > vmin:
+                if vmin <= 0.0 < vmax and np.any(vals > 0.0):
+                    eps = min(np.min(vals[vals > 0.0]) * 0.5, (vmax - 0.0) * 1e-3)
+                    pos_bounds = np.linspace(eps, vmax, len(grad_colors) + 1)
+                    bounds = np.concatenate(([min(vmin, 0.0)], pos_bounds))
+                else:
+                    eps = (vmax - vmin) * 1e-3
+                    rest_bounds = np.linspace(vmin + eps, vmax, len(grad_colors) + 1)
+                    bounds = np.concatenate(([vmin], rest_bounds))
+
+                colors_list = [gray_rgb] + grad_colors
+                norm = mcolors.BoundaryNorm(bounds, ncolors=len(colors_list))
+                my_cmap = mcolors.ListedColormap(colors_list, name=palette)
+            else:
+                my_cmap = mcolors.ListedColormap([gray_rgb], name=palette)
 
         else:
-            raise ValueError(
-                'Palette not found. Use: "light", "dark", "gray", or "green"'
-            )
+            if palette == "light":
+                px_palette = px.colors.sequential.Sunsetdark
+            elif palette == "dark":
+                px_palette = px.colors.sequential.thermal
+            elif palette == "green":
+                px_palette = px.colors.sequential.Aggrnyl
+            elif palette == "gray":
+                px_palette = px.colors.sequential.gray[::-1]
+            else:
+                raise ValueError(
+                    'Palette not found. Use: "light", "dark", "gray", "green",'
+                    ' "gray-red", or "gray-blue"'
+                )
 
-        converted = []
-        for c in palette:
-            rgb_255 = px.colors.unlabel_rgb(c)
-            rgb_01 = tuple(v / 255.0 for v in rgb_255)
-            converted.append(rgb_01)
-
-        my_cmap = mcolors.ListedColormap(converted, name="custom")
+            converted = sample_colors(px_palette, n_groups)
+            my_cmap = mcolors.ListedColormap(converted, name="custom")
 
         fig, ax = plt.subplots(figsize=(width, height))
         sc = ax.scatter(
             umap_df["UMAP1"],
             umap_df["UMAP2"],
             c=umap_df["feature"],
-            s=point_size,
+            s=sizes * 5,
             cmap=my_cmap,
-            alpha=1.0,
-            edgecolors="black",
-            linewidths=0.1,
+            norm=norm,
+            alpha=1,
+            edgecolors="white",
+            linewidths=0,
+            rasterized=rasterized,
         )
 
         cbar = plt.colorbar(sc, ax=ax)
         cbar.set_label(f"{feature_name}")
+        cbar.ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=5))
+        cbar.ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.1f"))
 
         ax.set_xlabel("UMAP 1")
         ax.set_ylabel("UMAP 2")
 
-        ax.grid(True)
+        ax.grid(grid)
 
         plt.tight_layout()
 
@@ -2757,6 +2878,7 @@ class COMPsc(Clustering):
         self,
         cells=None,
         sets=None,
+        with_sets_names: bool = False,
         min_exp: float = 0.01,
         min_pct: float = 0.1,
         n_proc: int = 10,
@@ -2871,7 +2993,7 @@ class COMPsc(Clustering):
             df = pd.DataFrame(results)
             df = df[(df["avg_valid"] > 0) | (df["avg_ctrl"] > 0)]
 
-            df["valid_group"] = valid_group
+            df["valid_group"] = str(valid_group)
             df.sort_values(by="p_val", inplace=True)
 
             num_tests = len(df)
@@ -2939,9 +3061,16 @@ class COMPsc(Clustering):
 
         elif cells == "All" and sets is None:
             print("\nAnalysis started...\nComparing each type of cell to others...")
-            choose.index = (
-                self.input_metadata["cell_names"] + " # " + self.input_metadata["sets"]
-            )
+
+            if with_sets_names:
+                choose.index = (
+                    self.input_metadata["cell_names"]
+                    + " # "
+                    + self.input_metadata["sets"]
+                )
+            else:
+                choose.index = self.input_metadata["cell_names"]
+
             unique_labels = set(choose.index)
 
             for label in tqdm(unique_labels):
@@ -3231,9 +3360,7 @@ class COMPsc(Clustering):
                 "Lack of 'self.var_data'. Use self.calculate_difference_markers() method first."
             )
 
-        if self.agg_normalized_data is None:
-            self.average()
-
+        self.average()
         metadata = self.agg_metadata
         data = self.agg_normalized_data
 
@@ -3396,13 +3523,14 @@ class COMPsc(Clustering):
         n_neighbors=5,
         min_dist=0.1,
         legend_split=2,
-        point_size=100,
+        point_size=200,
         spread=1.0,
         set_op_mix_ratio=1.0,
         local_connectivity=1,
         repulsion_strength=1.0,
         negative_sample_rate=5,
         threshold=0.1,
+        size_sort: bool = True,
         width=12,
         height=10,
     ):
@@ -3417,7 +3545,7 @@ class COMPsc(Clustering):
         bandwidth : float, default 1
             Bandwidth used by MeanShift for clustering polygons.
 
-        point_size : float, default 100
+        point_size : float, default 200
             Size of scatter points.
 
         legend_split : int, default 2
@@ -3427,6 +3555,10 @@ class COMPsc(Clustering):
 
         threshold : float, default 0.1
             Minimum text distance for label adjustment to avoid overlap.
+
+        size_sort : bool, default=True
+            If True, cluster names are sorted in descending order by cluster size.
+             If False, cluster names follow the order of their first appearance in `names_slot`.
 
         width : int, default 12
             Figure width.
@@ -3477,6 +3609,31 @@ class COMPsc(Clustering):
             combo_matrix.loc[row["cell1"], row["cell2"]] = row["combo_dist"]
             combo_matrix.loc[row["cell2"], row["cell1"]] = row["combo_dist"]
 
+        tmp_data = self.input_metadata.copy()
+
+        tmp_data["tmp_nam"] = list(tmp_data["cell_names"] + " # " + tmp_data["sets"])
+
+        tmp_data["count"] = tmp_data["tmp_nam"].map(tmp_data["tmp_nam"].value_counts())
+
+        tmp_data = pd.DataFrame(tmp_data[["count", "tmp_nam"]].copy()).drop_duplicates()
+
+        queue = pd.unique(tmp_data["tmp_nam"])
+
+        tmp_data["tmp_nam"] = pd.Categorical(
+            tmp_data["tmp_nam"], categories=queue, ordered=True
+        )
+
+        if size_sort:
+            tmp_data = tmp_data.sort_values("count", ascending=False).reset_index(
+                drop=True
+            )
+            tmp_data["id_vec"] = pd.factorize(tmp_data["count"])[0]
+
+        else:
+
+            tmp_data = tmp_data.sort_values("tmp_nam").reset_index(drop=True)
+            tmp_data["id_vec"] = pd.factorize(tmp_data["tmp_nam"])[0]
+
         umap_model = umap.UMAP(
             n_components=2,
             metric="precomputed",
@@ -3493,8 +3650,11 @@ class COMPsc(Clustering):
             verbose=True,
         )
 
-        coords = umap_model.fit_transform(combo_matrix.values)
-        cell_names = list(combo_matrix.index)
+        coords = pd.DataFrame(umap_model.fit_transform(combo_matrix.values))
+        coords.index = list(combo_matrix.index)
+        coords = np.array(coords.loc[tmp_data["tmp_nam"].values, :])
+
+        cell_names = list(tmp_data["tmp_nam"].values)
         num_cells = len(cell_names)
         palette = sns.color_palette("tab20c", num_cells)
 
@@ -3610,31 +3770,40 @@ class COMPsc(Clustering):
             )
             ax.add_patch(arrow)
 
-        if set_info is False and " # " in cell_names[0]:
+        set_names = set([re.sub(r".*# ", "", x) for x in cell_names])
 
-            legend_elements = [
-                Patch(
-                    facecolor=color_mapping[name],
-                    edgecolor="black",
-                    label=f"{i} – {re.sub(' #.*', '', name)}",
+        sets = []
+        for ic in set_names:
+            sets.append([x for x in cell_names if ic in x][0])
+
+        legend_elements = [
+            Patch(
+                facecolor=color_mapping[name],
+                edgecolor="black",
+                label=f"{i} – {re.sub(' #.*', '', name)}",
+            )
+            for i, name in enumerate(cell_names)
+        ]
+
+        if set_info is True and len(sets) > 1:
+
+            for ds in sets:
+                proxy_marker = Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    color="w",
+                    markersize=12,
+                    markerfacecolor=color_mapping[ds],
+                    markeredgecolor="black",
+                    linestyle="None",
+                    label=f"Data: {re.sub(r'.*# ', '', ds)}",
                 )
-                for i, name in enumerate(cell_names)
-            ]
-
-        else:
-
-            legend_elements = [
-                Patch(
-                    facecolor=color_mapping[name],
-                    edgecolor="black",
-                    label=f"{i} – {name}",
-                )
-                for i, name in enumerate(cell_names)
-            ]
+                legend_elements.append(proxy_marker)
 
         plt.legend(
             handles=legend_elements,
-            title="Cells",
+            title="",
             bbox_to_anchor=(1.05, 1),
             loc="upper left",
             ncol=legend_split,
@@ -4048,12 +4217,11 @@ class COMPsc(Clustering):
         )
 
         self.input_metadata["cell_names"] = new_meta
-        
-        if 'clustering_metadata' in self.__dict__.keys():
+
+        if "clustering_metadata" in self.__dict__.keys():
             self.clustering_metadata["cell_names"] = new_meta
 
         self.subclusters_ = None
-
 
     def dot_plot(
         self,

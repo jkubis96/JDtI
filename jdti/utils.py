@@ -1563,28 +1563,37 @@ def adjust_cells_to_group_mean(data, data_avg, beta=0.2):
 
 
 def get_mixed_palette(n_vars):
-
-    tab20 = plt.cm.tab20(np.linspace(0, 1, 20))
-    tab20b = plt.cm.tab20b(np.linspace(0, 1, 20))
-    tab20c = plt.cm.tab20c(np.linspace(0, 1, 20))
-    
+    """
+    Generate a high-contrast categorical color palette from Matplotlib colormaps.
+    """
     if n_vars <= 10:
-        return plt.cm.tab20(np.linspace(0, 1, 10))
-    
-    elif n_vars <= 20:
-        return plt.cm.tab20(np.linspace(0, 1, 20))
-        
-    elif n_vars <= 40:
-        combined = np.empty((40, 4))
-        combined[0::2] = tab20c   
-        combined[1::2] = tab20b  
-        return combined[:n_vars]
-        
-    else:
-        combined = np.empty((60, 4))
-        combined[0::3] = tab20  
-        combined[1::3] = tab20b 
-        combined[2::3] = tab20c  
-        
-        limit = min(n_vars, len(combined))
-        return combined[:limit]
+        return plt.cm.tab10(np.linspace(0, 1, 10))[:n_vars]
+
+    t20 = (
+        plt.cm.tab20(np.linspace(0, 1, 20))
+        .reshape(10, 2, 4)
+        .transpose(1, 0, 2)
+        .reshape(20, 4)
+    )
+    t20b = (
+        plt.cm.tab20b(np.linspace(0, 1, 20))
+        .reshape(5, 4, 4)
+        .transpose(1, 0, 2)
+        .reshape(20, 4)
+    )
+    t20c = (
+        plt.cm.tab20c(np.linspace(0, 1, 20))
+        .reshape(5, 4, 4)
+        .transpose(1, 0, 2)
+        .reshape(20, 4)
+    )
+
+    if n_vars <= 20:
+        return t20[:n_vars]
+
+    combined = np.empty((60, 4))
+    combined[0::3] = t20
+    combined[1::3] = t20b
+    combined[2::3] = t20c
+
+    return combined[: min(n_vars, 60)]
