@@ -906,6 +906,7 @@ class Clustering:
         point_size: int | float = 0.6,
         font_size: int | float = 6,
         legend_split_col: int = 2,
+        legend_points_size: int | float = 8,
         width: int = 8,
         height: int = 6,
         inc_num: bool = True,
@@ -933,6 +934,9 @@ class Clustering:
 
         legend_split_col : int, default 2
             Number of columns in legend.
+
+        legend_points_size : int or float, default 8
+            Marker size for points in the legend.
 
         width : int, default 8
             Figure width.
@@ -1183,7 +1187,6 @@ class Clustering:
                     color="w",
                     markerfacecolor="gray",
                     markeredgecolor="black",
-                    markersize=current_size * 2,
                     linestyle="None",
                     label=f"Set: {ds}",
                 )
@@ -1191,15 +1194,21 @@ class Clustering:
                 dataset_handles.append(proxy_marker)
                 dataset_labels.append(f"Data: {ds}")
 
-        ax.legend(
+        leg = ax.legend(
             dataset_handles,
             dataset_labels,
             title="",
             loc="center left",
             bbox_to_anchor=(1.05, 0.5),
             ncol=legend_split_col,
-            markerscale=15,
+            markerscale=1,
         )
+
+        for h in leg.legend_handles:
+            if hasattr(h, "_sizes"):
+                h._sizes = [legend_points_size * legend_points_size]
+            elif hasattr(h, "set_markersize"):
+                h.set_markersize(legend_points_size)
 
         ax.grid(grid, which="both")
 
