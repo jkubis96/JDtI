@@ -931,10 +931,14 @@ def features_dot(
             frameon=False,
         )
 
-    _, ymax = ax.get_ylim()
+    # reduce white bbox
+    # _, ymax = ax.get_ylim()
+
+    # ax.set_xlim(-0.5, len(scatter_df.columns) - 0.5)
+    # ax.set_ylim(-0.5, ymax + 0.5)
 
     ax.set_xlim(-0.5, len(scatter_df.columns) - 0.5)
-    ax.set_ylim(-0.5, ymax + 0.5)
+    ax.set_ylim(-0.5, len(scatter_df.index) - 0.5)
 
     return fig
 

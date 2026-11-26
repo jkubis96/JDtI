@@ -4458,6 +4458,7 @@ class COMPsc(Clustering):
         height=6,
         font_size=15,
         cmap: str = "tab20",
+        min_pct: float | int = 0,
         legend_split_col: int = 1,
         offset_labels: float | int = 0.5,
         legend_bbox: tuple = (1.15, 0.95),
@@ -4482,6 +4483,11 @@ class COMPsc(Clustering):
 
         cmap : str, default 'tab20'
             Colormap used for pie slices.
+
+        min_pct : float or int, default=0
+            Minimum percentage threshold required to display a percent label.
+            Labels are shown only for values greater than or equal to ``min_pct``.
+            Set to ``100`` to hide all percentage labels.
 
         legend_split_col : int, default 1
             Number of columns in the legend.
@@ -4520,7 +4526,10 @@ class COMPsc(Clustering):
                 ax = axes[idx]
                 tmp_df = df[df["set"] == s].reset_index(drop=True)
 
-                labels = [f"{row['pct']:.1f}%" for _, row in tmp_df.iterrows()]
+                labels = [
+                    f"{row['pct']:.1f}%" if row["pct"] > min_pct else ""
+                    for _, row in tmp_df.iterrows()
+                ]
 
                 wedges, _ = ax.pie(
                     tmp_df["n"],
@@ -4584,7 +4593,10 @@ class COMPsc(Clustering):
 
         else:
 
-            labels = [f"{row['pct']:.1f}%" for _, row in df.iterrows()]
+            labels = [
+                f"{row['pct']:.1f}%" if row["pct"] > min_pct else ""
+                for _, row in df.iterrows()
+            ]
 
             legend_labels = [f"{row['name']}" for _, row in df.iterrows()]
 
@@ -4647,6 +4659,7 @@ class COMPsc(Clustering):
     def bar_composition(
         self,
         cmap="tab20b",
+        min_pct: float | int = 0,
         width=2,
         height=6,
         font_size=15,
@@ -4664,6 +4677,11 @@ class COMPsc(Clustering):
         ----------
         cmap : str, default 'tab20b'
             Colormap used for stacked bars.
+
+        min_pct : float or int, default=0
+            Minimum percentage threshold required to display a percent label.
+            Labels are shown only for values greater than or equal to ``min_pct``.
+            Set to ``100`` to hide all percentage labels.
 
         width : int, default 2
             Width of each subplot (per set).
@@ -4735,22 +4753,24 @@ class COMPsc(Clustering):
                 for y_label, y_center, pct, num in zip(
                     y_positions, centers, perc, nums
                 ):
-                    ax.annotate(
-                        f"{pct:.1f}%",
-                        xy=(0, y_center),
-                        xycoords="data",
-                        xytext=(x_text, y_label),
-                        textcoords="data",
-                        ha="right",
-                        va="center",
-                        fontsize=font_size,
-                        arrowprops=dict(
-                            arrowstyle="->",
-                            lw=1,
-                            color="black",
-                            connectionstyle="angle3,angleA=0,angleB=90",
-                        ),
-                    )
+
+                    if pct > min_pct:
+                        ax.annotate(
+                            f"{pct:.1f}%",
+                            xy=(0, y_center),
+                            xycoords="data",
+                            xytext=(x_text, y_label),
+                            textcoords="data",
+                            ha="right",
+                            va="center",
+                            fontsize=font_size,
+                            arrowprops=dict(
+                                arrowstyle="->",
+                                lw=1,
+                                color="black",
+                                connectionstyle="angle3,angleA=0,angleB=90",
+                            ),
+                        )
 
                 ax.set_ylim(0, 100)
                 ax.set_xlabel(s, fontsize=font_size)
@@ -4793,7 +4813,7 @@ class COMPsc(Clustering):
             bottom = 0
             centers = []
             for name, num, val, color in zip(names, nums, values, colors):
-                ax.bar(0, val, bottom=bottom, color=color, label=f"{num}) {name}")
+                ax.bar(0, val, bottom=bottom, color=color, label=name)
                 centers.append(bottom + val / 2)
                 bottom += val
 
@@ -4801,22 +4821,24 @@ class COMPsc(Clustering):
             x_text = -0.8
 
             for y_label, y_center, pct, num in zip(y_positions, centers, perc, nums):
-                ax.annotate(
-                    f"{num}) {pct}",
-                    xy=(0, y_center),
-                    xycoords="data",
-                    xytext=(x_text, y_label),
-                    textcoords="data",
-                    ha="right",
-                    va="center",
-                    fontsize=9,
-                    arrowprops=dict(
-                        arrowstyle="->",
-                        lw=1,
-                        color="black",
-                        connectionstyle="angle3,angleA=0,angleB=90",
-                    ),
-                )
+
+                if pct > min_pct:
+                    ax.annotate(
+                        f"{pct:.1f}%",
+                        xy=(0, y_center),
+                        xycoords="data",
+                        xytext=(x_text, y_label),
+                        textcoords="data",
+                        ha="right",
+                        va="center",
+                        fontsize=9,
+                        arrowprops=dict(
+                            arrowstyle="->",
+                            lw=1,
+                            color="black",
+                            connectionstyle="angle3,angleA=0,angleB=90",
+                        ),
+                    )
 
             ax.set_xticks([])
             ax.set_yticks([])
